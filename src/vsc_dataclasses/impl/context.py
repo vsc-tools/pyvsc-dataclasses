@@ -66,8 +66,61 @@ class DataTypeStruct(DataType):
     def setCreateHook(self, hook : Callable):
         raise NotImplementedError("setCreateHook")
 
-class ModelFieldFlag(IntEnum):
-    pass
+class ModelFieldFlag(IntFlag):
+    NoFlags  = 0
+    DeclRand = (1 << 0)
+    UsedRand = (1 << 1)
+    Resolved = (1 << 2)
+    VecSize  = (1 << 3)
+
+class ModelField(object):
+
+    def name(self) -> str:
+        raise NotImplementedError("name")
+
+    def getDataType(self) -> DataType:
+        raise NotImplementedError("getDataType")
+    
+    def getParent(self) -> 'ModelField':
+        raise NotImplementedError("getParent")
+
+    def setParent(self, parent : 'ModelField'):
+        raise NotImplementedError("setParent")
+
+    def constraints(self) -> List['ModelConstraint']:
+        raise NotImplementedError("constraints")
+    
+    def addConstraint(self, c : 'ModelConstraint'):
+        raise NotImplementedError("addConstraint")
+
+    def fields(self) -> List['ModelField']:
+        raise NotImplementedError("fields")
+
+    def addField(self, f : 'ModelField'):
+        raise NotImplementedError("addField")
+
+    def getField(self, idx : int) -> 'ModelField':
+        raise NotImplementedError("getField")
+
+    def val(self) -> 'ModelVal':
+        raise NotImplementedError("val")
+
+    def clearFlag(self, flags : 'ModelFieldFlag'):
+        raise NotImplementedError("clearFlag")
+
+    def setFlag(self, flags : 'ModelFieldFlag'):
+        raise NotImplementedError("setFlag")
+
+    def isFlagSet(self, flags : 'ModelFieldFlag') -> bool:
+        raise NotImplementedError("isFlagSet")
+
+    def setFieldData(self, data):
+        raise NotImplementedError("setFieldData")
+
+    def getFieldData(self) -> object:
+        raise NotImplementedError("getFieldData")
+
+
 
 class ModelVal(object):
     pass
@@ -151,6 +204,24 @@ class TypeField(object):
 
 
 class Context(object):
+
+    def findDataTypeEnum(self, name) -> DataTypeEnum:
+        raise NotImplementedError("findDataTypeEnum")
+
+    def mkDataTypeEnum(self, name) -> DataTypeEnum:
+        raise NotImplementedError("mkDataTypeEnum")
+
+    def addDataTypeEnum(self, t : DataTypeEnum) -> bool:
+        raise NotImplementedError("addDataTypeEnum")
+
+    def findDataTypeInt(self, is_signed : bool, width : int) -> DataTypeInt:
+        raise NotImplementedError("findDataTypeInt")
+
+    def mkDataTypeInt(self, is_signed : bool, width : int) -> DataTypeInt:
+        raise NotImplementedError("mkDataTypeInt")
+
+    def addDataTypeInt(self, t : DataTypeInt) -> bool:
+        raise NotImplementedError("addDataTypeInt")
 
     def findDataTypeStruct(self, name) -> DataTypeStruct:
         raise NotImplementedError("findDataTypeStruct")

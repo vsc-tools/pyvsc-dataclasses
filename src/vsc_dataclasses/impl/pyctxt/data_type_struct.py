@@ -27,3 +27,14 @@ class DataTypeStruct(ctxt_api.DataTypeStruct):
 
     def setCreateHook(self, hook : Callable):
         self._create_h = hook
+
+    def mkRootField(self,
+        ctxt : 'ModelBuildContext',
+        name : str,
+        is_ref : bool) -> 'ModelField':
+        raise NotImplementedError("mkRootField")
+
+    def mkTypeField(self,
+        ctxt : 'ModelBuildContext',
+        type : 'TypeField') -> 'ModelField':
+        raise NotImplementedError("mkTypeField")
