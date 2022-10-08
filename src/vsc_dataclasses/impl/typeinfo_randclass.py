@@ -40,7 +40,7 @@ class TypeInfoRandClass(TypeInfoVsc):
         ctor = Ctor.inst()
 
         if ctxt_b is None:
-            ctxt_b = ModelBuildContext(ctor.ctxt())
+            ctxt_b = ctor.ctxt().mkModelBuildContext(ctor.ctxt())
 
         if modelinfo is None:
             modelinfo = ModelInfo(obj, "<>", self)

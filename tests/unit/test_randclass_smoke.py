@@ -10,5 +10,9 @@ class TestRandClassSmoke(TestBase):
         class MyC(object):
             pass
 
+        ctor = vdc.impl.Ctor.inst()
 
-        pass
+        # Check that we can find the registered type
+        self.assertIsNotNone(ctor.ctxt().findDataTypeStruct(MyC.__qualname__))
+
+        c = MyC()
