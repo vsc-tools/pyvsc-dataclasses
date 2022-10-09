@@ -1,5 +1,6 @@
 
 import vsc_dataclasses.impl as impl
+from vsc_dataclasses.impl.pyctxt.type_field_phy import TypeFieldPhy
 from .data_type_struct import DataTypeStruct
 from .data_type_enum import DataTypeEnum
 from .data_type_int import DataTypeInt
@@ -79,3 +80,17 @@ class Context(impl.Context):
 
     def mkRandState(self, seed : str) -> RandState:
         return RandState(seed)
+
+    def mkTypeFieldPhy(self,
+        name,
+        dtype : 'DataType',
+        own_dtype : bool,
+        attr,
+        init : 'ModelVal') -> 'TypeFieldPhy':
+        return TypeFieldPhy(name, dtype, init)
+
+    def mkTypeFieldRef(self,
+        name,
+        dtype : 'DataType',
+        attr) -> 'TypeFieldRef':
+        raise NotImplementedError("mkTypeFieldRef")

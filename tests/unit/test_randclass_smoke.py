@@ -8,6 +8,7 @@ class TestRandClassSmoke(TestBase):
 
         @vdc.randclass
         class MyC(object):
+            a : vdc.rand_uint32_t
             pass
 
         ctor = vdc.impl.Ctor.inst()
@@ -16,3 +17,6 @@ class TestRandClassSmoke(TestBase):
         self.assertIsNotNone(ctor.ctxt().findDataTypeStruct(MyC.__qualname__))
 
         c = MyC()
+        c.a = 20
+        self.assertEqual(c.a, 20)
+

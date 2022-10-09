@@ -1,5 +1,6 @@
 
 import vsc_dataclasses.impl.context as ctxt_api
+from vsc_dataclasses.impl.pyctxt.model_field import ModelField
 
 class DataTypeInt(ctxt_api.DataType):
 
@@ -16,6 +17,11 @@ class DataTypeInt(ctxt_api.DataType):
     def mkTypeField(self,
         ctxt : 'ModelBuildContext',
         type : 'TypeField') -> 'ModelField':
-        raise NotImplementedError("mkTypeField")
+        ret = ModelField(
+            type.name(),
+            type.getDataType())
+        ret._val.setBits(self._width)
+        
+        return ret
 
     pass

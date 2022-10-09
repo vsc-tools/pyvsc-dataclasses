@@ -57,6 +57,9 @@ class DataTypeStruct(DataType):
     def getFields(self) -> List['TypeField']:
         raise NotImplementedError("getFields")
 
+    def getField(self, idx : int) -> 'TypeField':
+        raise NotImplementedError("getField")
+
     def addConstraint(self, c : 'TypeConstraint'):
         raise NotImplementedError("addConstraint")
 
@@ -123,7 +126,24 @@ class ModelField(object):
 
 
 class ModelVal(object):
-    pass
+
+    def bits(self) -> int:
+        raise NotImplementedError("bits")
+
+    def setBits(self, bits : int) ->int:
+        raise NotImplementedError("setBits")
+
+    def val_u(self) -> int:
+        raise NotImplementedError("val_u")
+
+    def val_i(self) -> int:
+        raise NotImplementedError("val_i")
+
+    def set_val_i(self, v : int, bits : int=-1):
+        raise NotImplementedError("set_val_i")
+
+    def set_val_u(self, v : int, bits : int=-1):
+        raise NotImplementedError("set_val_u")
 
 class TypeFieldAttr(IntEnum):
     pass
@@ -202,6 +222,15 @@ class TypeField(object):
     def name(self) -> str:
         raise NotImplementedError("name")
 
+    def mkModelField(self, ctxt : 'ModelBuildContext') -> 'ModelField':
+        raise NotImplementedError("mkModelField")
+
+
+class TypeFieldPhy(TypeField):
+
+    def getInit(self) -> 'ModelVal':
+        raise NotImplementedError('getInit')
+
 
 class Context(object):
 
@@ -238,5 +267,38 @@ class Context(object):
     def mkModelBuildContext(self, ctxt : 'Context') -> ModelBuildContext:
         raise NotImplementedError("mkModelBuildContext")
 
+    def mkTypeConstraintBlock(self, name) -> 'TypeConstraintBlock':
+        raise NotImplementedError("mkTypeConstraintBlock")
 
-    pass
+    def mkTypeConstraintExpr(self, e : 'TypeExpr') -> 'TypeConstraintExpr':
+        raise NotImplementedError("mkTypeConstraintExpr")
+
+    def mkTypeConstraintIfElse(self, c : 'TypeExpr', ct : 'TypeConstraint') -> 'TypeConstraintIfElse':
+        raise NotImplementedError("mkTypeConstraintIfElse")
+
+    def mkTypeConstraintImplies(self, c : 'TypeExpr', b : 'TypeConstraint') -> 'TypeConstraintImplies':
+        raise NotImplementedError("mkTypeConstraintImplies")
+
+    def mkTypeConstraintSoft(self, c : 'TypeConstraintExpr') -> 'TypeConstraintSoft':
+        raise NotImplementedError("mkTypeConstraintSoft")
+
+    def mkTypeConstraintUnique(self, e : List['TypeExpr']) -> 'TypeConstraintUnique':
+        raise NotImplementedError("mkTypeConstraintUnique")
+
+    def mkTypeExprBin(self, lhs : 'TypeExpr', op : BinOp, rhs : 'TypeExpr') -> 'TypeExprBin':
+        raise NotImplementedError("mkTypeExprBin")
+
+    def mkTypeFieldPhy(self,
+        name,
+        dtype : 'DataType',
+        own_dtype : bool,
+        attr,
+        init : 'ModelVal') -> 'TypeFieldPhy':
+        raise NotImplementedError("mkTypeFieldPhy")
+
+    def mkTypeFieldRef(self,
+        name,
+        dtype : 'DataType',
+        attr) -> 'TypeFieldRef':
+        raise NotImplementedError("mkTypeFieldRef")
+

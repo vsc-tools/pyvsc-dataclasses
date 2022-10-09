@@ -1,6 +1,7 @@
 
 from typing import Callable, List
 import vsc_dataclasses.impl.context as ctxt_api
+from vsc_dataclasses.impl.pyctxt.model_field import ModelField
 
 class DataTypeStruct(ctxt_api.DataTypeStruct):
 
@@ -19,6 +20,14 @@ class DataTypeStruct(ctxt_api.DataTypeStruct):
     def getFields(self) -> List['TypeField']:
         return self._fields
 
+    def getField(self, idx : int) -> 'TypeField':
+        if idx < 0:
+            raise Exception("getField with negative index %d" % idx)
+        if idx >= len(self._fields):
+            raise Exception("getField with out-of-bounds index %d (size=%d)" % (
+                idx, len(self._fields)))
+        return self._fields[idx]
+
     def addConstraint(self, c : 'TypeConstraint'):
         self._constraints.append(c)
 
@@ -32,7 +41,12 @@ class DataTypeStruct(ctxt_api.DataTypeStruct):
         ctxt : 'ModelBuildContext',
         name : str,
         is_ref : bool) -> 'ModelField':
-        raise NotImplementedError("mkRootField")
+        ret = ModelField(name, self)
+        for tf in self._fields:
+            ret.addField(tf.mkModelField(ctxt))
+        # TODO: build out fields
+        # TODO: build out constraints
+        return ret
 
     def mkTypeField(self,
         ctxt : 'ModelBuildContext',

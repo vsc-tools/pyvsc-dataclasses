@@ -1,6 +1,7 @@
 
 from typing import List
 import vsc_dataclasses.impl.context as ctxt_api
+from vsc_dataclasses.impl.pyctxt.model_val import ModelVal
 
 class ModelField(ctxt_api.ModelField):
 
@@ -10,7 +11,7 @@ class ModelField(ctxt_api.ModelField):
         self._parent = None
         self._constraints = []
         self._fields = []
-        self._val = None
+        self._val = ModelVal()
         self._flags = 0
         self._data = None
 
