@@ -42,9 +42,11 @@ class DataTypeStruct(ctxt_api.DataTypeStruct):
         name : str,
         is_ref : bool) -> 'ModelField':
         ret = ModelField(name, self)
+
+        # Build out fields
         for tf in self._fields:
             ret.addField(tf.mkModelField(ctxt))
-        # TODO: build out fields
+
         # TODO: build out constraints
         return ret
 
