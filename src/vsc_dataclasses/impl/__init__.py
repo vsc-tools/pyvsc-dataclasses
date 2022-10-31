@@ -15,8 +15,14 @@
 #****************************************************************************
 from .context import Context
 from .ctor import Ctor
+from .field_base_impl import FieldBaseImpl
 from .field_ref_impl import FieldRefImpl
+from .modelinfo import ModelInfo
 from .randclass_decorator_impl import RandClassDecoratorImpl
+from .randclass_impl import RandClassImpl
 from .rand_state import RandState
+from .typeinfo_field import TypeInfoField
+from .typeinfo_ref import TypeInfoRef
 from .typeinfo_vsc import TypeInfoVsc
 from .typeinfo_randclass import TypeInfoRandClass
+from .typeinfo_scalar import TypeInfoScalar
