@@ -35,10 +35,23 @@ class Ctor():
         self._expr_mode_s = []
         self._raw_mode_s = []
         self._bottom_up_mi_s = []
+        self._type_ps = "."
         pass
     
     def ctxt(self):
         return self._ctxt
+
+    def setTypePS(self, ps):
+        ret = self._type_ps
+        self._type_ps = ps
+        return ret
+
+    def pyType2TypeName(self, name):
+        """Creates a type name from a Python-type name"""
+        if self._type_ps != ".":
+            return name.replace('.', self._type_ps)
+        else:
+            return name
 
     def mkRandState(self):
         from .rand_state import RandState

@@ -60,10 +60,12 @@ class RandClassDecoratorImpl(typeworks.ClsDecoratorBase):
         # Ensure we've created type-info of appropriate type
         print("RandClasss.PreDecorate")
         randclass_ti = TypeInfoRandClass.get(self.get_typeinfo())
+        ctor = Ctor.inst()
         
         print("  TI: %s" % str(randclass_ti))
-        
-        randclass_ti.lib_typeobj = self._getLibDataType(T.__qualname__)
+
+        typename = ctor.pyType2TypeName(T.__qualname__)
+        randclass_ti.lib_typeobj = self._getLibDataType(typename)
 
         print("RandClass %s" % T.__qualname__)
         print("  Bases: %s" % str(T.__bases__))
