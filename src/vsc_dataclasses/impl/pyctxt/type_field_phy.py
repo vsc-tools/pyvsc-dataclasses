@@ -1,14 +1,14 @@
 
+import vsc_dataclasses.impl.context as ctxt_api
 from .model_val import ModelVal
 from .type_field import TypeField
 
 
-import vsc_dataclasses.impl.context as ctxt_api
 
 class TypeFieldPhy(ctxt_api.TypeFieldPhy, TypeField):
 
-    def __init__(self, name, dtype, init):
-        TypeField.__init__(self, name, dtype)
+    def __init__(self, name, dtype, attr, init):
+        TypeField.__init__(self, name, attr, dtype)
         self._init = ModelVal()
         if init is not None:
             self._init.setBits(init.bits())

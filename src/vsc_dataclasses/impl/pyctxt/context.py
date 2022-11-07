@@ -1,11 +1,14 @@
 
 import vsc_dataclasses.impl as impl
 from vsc_dataclasses.impl.pyctxt.type_field_phy import TypeFieldPhy
+from vsc_dataclasses.impl.pyctxt.type_field_ref import TypeFieldRef
 from .data_type_struct import DataTypeStruct
 from .data_type_enum import DataTypeEnum
 from .data_type_int import DataTypeInt
 from .model_build_context import ModelBuildContext
 from .rand_state import RandState
+from .type_expr_field_ref import TypeExprFieldRef
+from .type_expr_val import TypeExprVal
 
 
 class Context(impl.Context):
@@ -81,16 +84,22 @@ class Context(impl.Context):
     def mkRandState(self, seed : str) -> RandState:
         return RandState(seed)
 
+    def mkTypeExprFieldRef(self) -> 'TypeExprFieldRef':
+        return TypeExprFieldRef()
+
+    def mkTypeExprVal(self, val) -> 'TypeExprVal':
+        return TypeExprVal(val)
+
     def mkTypeFieldPhy(self,
         name,
         dtype : 'DataType',
         own_dtype : bool,
         attr,
         init : 'ModelVal') -> 'TypeFieldPhy':
-        return TypeFieldPhy(name, dtype, init)
+        return TypeFieldPhy(name, dtype, attr, init)
 
     def mkTypeFieldRef(self,
         name,
         dtype : 'DataType',
         attr) -> 'TypeFieldRef':
-        raise NotImplementedError("mkTypeFieldRef")
+        return TypeFieldRef(name, dtype, attr)

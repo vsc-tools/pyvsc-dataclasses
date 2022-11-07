@@ -15,7 +15,7 @@
 #*
 #* Declares back-end interface API and associated data types
 #****************************************************************************
-from enum import IntEnum, IntFlag
+from enum import IntEnum, IntFlag, auto
 from typing import Callable, List
 
 
@@ -64,7 +64,7 @@ class DataTypeStruct(DataType):
         raise NotImplementedError("name")
 
     def addField(self, f : 'TypeField'):
-        raise NotImplementedError("addField")
+        raise NotImplementedError("addField unimplemented for %s" % str(type(self)))
 
     def getFields(self) -> List['TypeField']:
         raise NotImplementedError("getFields")
@@ -157,9 +157,6 @@ class ModelVal(object):
     def set_val_u(self, v : int, bits : int=-1):
         raise NotImplementedError("set_val_u")
 
-class TypeFieldAttr(IntEnum):
-    pass
-
 class ModelBuildContext(object):
 
     def ctxt(self) -> 'Context':
@@ -199,6 +196,36 @@ class TypeFieldAttr(IntFlag):
 class TypeExpr(object):
     pass
 
+class TypeExprFieldRefElemKind(IntEnum):
+    Root = auto()
+    ActiveScope = auto()
+    IdxOffset = auto()
+
+#class TypeExprFieldRefElem(object):
+#    kind : TypeExprFieldRefElemKind
+#    idx : int
+
+class TypeExprFieldRef(TypeExpr):
+
+    def addIdxRef(self, idx : int):
+        raise NotImplementedError("addIdxRef")
+
+    def addActiveScopeRef(self, off : int):
+        raise NotImplementedError("addActiveScopeRef")
+
+    def addRootRef(self):
+        raise NotImplementedError("addRootRef")
+
+    def addRef(self, ref : 'TypeExprFieldRefElem'):
+        raise NotImplementedError("addRef")
+
+    def at(self, idx : int) -> 'TypeExprFieldRefElem':
+        raise NotImplementedError("at")
+
+    def getPath(self) -> List['TypeExprFieldRefElem']:
+        raise NotImplementedError("getPath")
+
+
 class TypeExprRange(TypeExpr):
 
     def isSingle(self) -> bool:
@@ -209,6 +236,11 @@ class TypeExprRange(TypeExpr):
 
     def upper(self) -> 'TypeExpr':
         raise NotImplementedError("upper")
+
+class TypeExprVal(TypeExpr):
+
+    def val(self) -> 'ModelVal':
+        raise NotImplementedError("val")
 
 #********************************************************************
 #* TypeField
@@ -242,6 +274,10 @@ class TypeFieldPhy(TypeField):
 
     def getInit(self) -> 'ModelVal':
         raise NotImplementedError('getInit')
+
+class TypeFieldRef(TypeField):
+    pass
+
 
 
 class Context(object):
@@ -299,6 +335,21 @@ class Context(object):
 
     def mkTypeExprBin(self, lhs : 'TypeExpr', op : BinOp, rhs : 'TypeExpr') -> 'TypeExprBin':
         raise NotImplementedError("mkTypeExprBin")
+
+    def mkTypeExprFieldRef(self) -> 'TypeExprFieldRef':
+        raise NotImplementedError("mkTypeExprFieldRef")
+
+    def mkTypeExprRange(self,
+        is_single : bool,
+        lower : 'TypeExpr',
+        upper : 'TypeExpr') -> 'TypeExprRange':
+        raise NotImplementedError("mkTypeExprRange")
+
+    def mkTypeExprRangelist(self):
+        raise NotImplementedError("mkTypeExprRangelist")
+
+    def mkTypeExprVal(self, val : 'ModelVal'):
+        raise NotImplementedError("mkTypeExprVal")
 
     def mkTypeFieldPhy(self,
         name,

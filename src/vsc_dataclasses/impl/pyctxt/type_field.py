@@ -3,9 +3,10 @@ import vsc_dataclasses.impl.context as ctxt_api
 
 class TypeField(ctxt_api.TypeField):
 
-    def __init__(self, name, dtype):
+    def __init__(self, name, dtype, attr):
         self._name = name
         self._dtype = dtype
+        self._attr = attr
         self._parent = None
         self._index = -1
 
@@ -23,6 +24,9 @@ class TypeField(ctxt_api.TypeField):
 
     def getDataType(self) -> 'DataType':
         return self._dtype
+
+    def setDataType(self, dtype : 'DataType'):
+        self._dtype = dtype
 
     def name(self) -> str:
         return self._name

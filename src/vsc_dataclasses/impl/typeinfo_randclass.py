@@ -110,7 +110,8 @@ class TypeInfoRandClass(TypeInfoVsc):
 
             # Field constructor responsible for adding itself
             # to the parent modelinfo
-            print("field_ti.idx: %d ; getField: %s" % (field_ti.idx, str(s.lib_scope.getField(field_ti.idx))))
+            print("field_ti .name=%s .idx: %d" % (field_ti.name, field_ti.idx))
+            print("  getField: %s" % str(s.lib_scope.getField(field_ti.idx)))
 #            ctor.push_scope(None, s.lib_scope.getField(field_ti.idx), ctor.is_type_mode())
             f = field_ti.createInst(
                 modelinfo,
@@ -190,6 +191,8 @@ class TypeInfoRandClass(TypeInfoVsc):
     def addField(self, field_ti, field_obj):
         if field_obj is not None:
             self._lib_typeobj.addField(field_obj)
+        else:
+            print("Skip adding field %s" % field_ti.name)
         field_ti.idx = len(self._field_typeinfo)
         self._field_typeinfo.append(field_ti)
         

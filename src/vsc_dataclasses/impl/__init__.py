@@ -15,6 +15,7 @@
 #****************************************************************************
 from .context import Context
 from .ctor import Ctor
+from .expr import Expr
 from .field_base_impl import FieldBaseImpl
 from .field_ref_impl import FieldRefImpl
 from .modelinfo import ModelInfo
