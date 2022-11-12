@@ -20,7 +20,25 @@ from typing import Callable, List
 
 
 class BinOp(IntEnum):
-    pass
+    Eq      = 0
+    Ne      = auto()
+    Gt      = auto()
+    Ge      = auto()
+    Lt      = auto()
+    Le      = auto()
+    Add     = auto()
+    Sub     = auto()
+    Div     = auto()
+    Mul     = auto()
+    Mod     = auto()
+    BinAnd  = auto()
+    BinOr   = auto()
+    LogAnd  = auto()
+    LogOr   = auto()
+    Sll     = auto()
+    Srl     = auto()
+    Xor     = auto()
+    Not     = auto()
 
 class UnaryOp(IntEnum):
     pass
