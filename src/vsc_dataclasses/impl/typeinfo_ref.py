@@ -19,8 +19,17 @@ from .typeinfo_vsc import TypeInfoVsc
 
 class TypeInfoRef(TypeInfoVsc):
     
-    def __init__(self):
+    def __init__(self, target_ti):
         super().__init__(None, None)
+        self._target_ti = target_ti
+
+    @property
+    def target_ti(self):
+        return self._target_ti
+
+    @target_ti.setter
+    def target_ti(self, ti):
+        self._target_ti = ti
     
     def createInst(
             self,
