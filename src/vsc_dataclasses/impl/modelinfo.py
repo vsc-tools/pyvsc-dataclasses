@@ -52,6 +52,10 @@ class ModelInfo(object):
         self._name = v
 
     @property
+    def info(self):
+        return self._typeinfo
+
+    @property
     def idx(self):
         return self._idx
 

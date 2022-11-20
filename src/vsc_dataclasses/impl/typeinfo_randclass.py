@@ -78,7 +78,7 @@ class TypeInfoRandClass(TypeInfoVsc):
                 s.inc_inh_depth()
             else:
                 # Need a new scope
-                if s._type_mode:
+                if ctor.is_type_mode():
                     raise Exception("Shouldn't hit this in type mode")
                 print("TODO: Create root field for %s" % self.lib_typeobj.name())
                 obj._modelinfo.libobj = self.lib_typeobj.mkRootField(ctxt_b, "<>", False)
@@ -112,12 +112,10 @@ class TypeInfoRandClass(TypeInfoVsc):
             # to the parent modelinfo
             print("field_ti .name=%s .idx: %d" % (field_ti.name, field_ti.idx))
             print("  getField: %s" % str(s.lib_scope.getField(field_ti.idx)))
-#            ctor.push_scope(None, s.lib_scope.getField(field_ti.idx), ctor.is_type_mode())
             f = field_ti.createInst(
                 modelinfo,
                 field_ti.name,
                 field_ti.idx)
-#            ctor.pop_scope()
 
             print("Set Attr: %s=%s" % (field_ti.name, str(f)))
             setattr(obj, field_ti.name, f)
@@ -164,7 +162,9 @@ class TypeInfoRandClass(TypeInfoVsc):
         ctor = Ctor.inst()
 
         ctor.push_scope(None, self.lib_typeobj, True)
+        ctor.push_type_mode()
         obj = self.info.Tp()
+        ctor.pop_type_mode()
 
         return obj
 
@@ -178,6 +178,7 @@ class TypeInfoRandClass(TypeInfoVsc):
         ctor = Ctor.inst()
 
         ctor.push_scope(obj, self.lib_typeobj, True)
+        ctor.push_type_mode()
         ctor.push_expr_mode()        
         for c in self.getConstraints():
             cs = ctor.ctxt().mkTypeConstraintBlock(c.name)
@@ -186,6 +187,7 @@ class TypeInfoRandClass(TypeInfoVsc):
             ctor.pop_constraint_scope()
             self.lib_typeobj.addConstraint(cs)
         ctor.pop_expr_mode()
+        ctor.pop_type_mode()
         ctor.pop_scope()
 
     def addField(self, field_ti, field_obj):
@@ -195,6 +197,9 @@ class TypeInfoRandClass(TypeInfoVsc):
             print("Skip adding field %s" % field_ti.name)
         field_ti.idx = len(self._field_typeinfo)
         self._field_typeinfo.append(field_ti)
+
+    def getField(self, idx):
+        return self._field_typeinfo[idx]
         
     def getFields(self) -> List[TypeInfoField]:
         return self._field_typeinfo

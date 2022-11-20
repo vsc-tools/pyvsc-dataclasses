@@ -29,6 +29,7 @@ class Ctor():
         self._ctxt = None
         
         self._scope_s = []
+        self._typemode_s = []
         self._constraint_l = []
         self._constraint_s = []
         self._expr_s = []
@@ -57,6 +58,15 @@ class Ctor():
         from .rand_state import RandState
 
         return RandState(f"{self._randstate.rand_u}")
+
+    def save_scopes(self, clear=True):
+        ret = self._scope_s.copy()
+        if clear:
+            self._scope_s.clear()
+        return ret
+
+    def restore_scopes(self, scopes):
+        self._scope_s = scopes
     
     def scope(self, off=-1):
         if len(self._scope_s) > 0:
@@ -71,9 +81,15 @@ class Ctor():
         
     def pop_scope(self):
         self._scope_s.pop()
-        
+
+    def push_type_mode(self, t=True):
+        self._typemode_s.append(t)
+
     def is_type_mode(self):
-        return len(self._scope_s) > 0 and self._scope_s[-1]._type_mode
+        return (len(self._typemode_s) > 0 and self._typemode_s[-1]) or len(self._scope_s) > 0 and self._scope_s[-1]._type_mode
+
+    def pop_type_mode(self):
+        self._typemode_s.pop()
 
     def push_bottom_up_mi(self, mi):
         self._bottom_up_mi_s.append(mi)

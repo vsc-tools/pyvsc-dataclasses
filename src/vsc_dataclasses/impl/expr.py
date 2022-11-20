@@ -48,7 +48,7 @@ class Expr(object):
             return Expr(ev)
         else:
             raise Exception("toExpr failed")
-        
+
     def _bin_expr(self, op, rhs):
         ctor = Ctor.inst()
         ctxt = ctor.ctxt()

@@ -131,4 +131,7 @@ class rangelist(object):
     
     def __invert__(self):
         print("rangelist.__invert__")
+
+def AND(*args):
+    pass
         
