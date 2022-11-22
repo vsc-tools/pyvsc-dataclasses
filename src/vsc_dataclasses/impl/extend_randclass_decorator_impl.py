@@ -20,6 +20,7 @@
 #*
 #****************************************************************************
 
+import dataclasses
 import typeworks
 
 from .context import TypeFieldAttr
@@ -130,6 +131,10 @@ class ExtendRandClassDecoratorImpl(typeworks.ClsDecoratorBase):
             print("  Is a list: %s" % str(t.T))
         else:
             raise Exception("Non-scalar fields are not yet supported")
+
+    def decorate(self, T):
+        dataclasses.dataclass(T, **self.kwargs)
+        return None
 
     def __collectConstraints(self, typeinfo, clsT):
         """Connect constraints from base classes"""
