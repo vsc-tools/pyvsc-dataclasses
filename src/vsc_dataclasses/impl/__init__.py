@@ -16,6 +16,7 @@
 from .context import Context
 from .ctor import Ctor
 from .expr import Expr
+from .extend_randclass_decorator_impl import ExtendRandClassDecoratorImpl
 from .field_base_impl import FieldBaseImpl
 from .field_ref_impl import FieldRefImpl
 from .modelinfo import ModelInfo
@@ -27,3 +28,4 @@ from .typeinfo_ref import TypeInfoRef
 from .typeinfo_vsc import TypeInfoVsc
 from .typeinfo_randclass import TypeInfoRandClass
 from .typeinfo_scalar import TypeInfoScalar
+from .typeinfo_extend_randclass import TypeInfoExtendRandClass

@@ -1,68 +1,65 @@
 #****************************************************************************
-# Copyright 2019-2022 Matthew Ballance and contributors
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# Created on Feb 26, 2022
-#
-# @author: mballance
+#* extend_randclass_decorator_impl.py
+#*
+#* Copyright 2022 Matthew Ballance and Contributors
+#*
+#* Licensed under the Apache License, Version 2.0 (the "License"); you may 
+#* not use this file except in compliance with the License.  
+#* You may obtain a copy of the License at:
+#*
+#*   http://www.apache.org/licenses/LICENSE-2.0
+#*
+#* Unless required by applicable law or agreed to in writing, software 
+#* distributed under the License is distributed on an "AS IS" BASIS, 
+#* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  
+#* See the License for the specific language governing permissions and 
+#* limitations under the License.
+#*
+#* Created on:
+#*     Author: 
+#*
 #****************************************************************************
+
 import typeworks
-from .typeinfo_scalar import TypeInfoScalar
-from .constraint_decorator_impl import ConstraintDecoratorImpl
 
-from .scalar_t import ScalarT
 from .context import TypeFieldAttr
+from .constraint_decorator_impl import ConstraintDecoratorImpl
 from .ctor import Ctor
-from .typeinfo_randclass import TypeInfoRandClass
-from .randclass_impl import RandClassImpl
 from .type_kind_e import TypeKindE
-from .typeinfo_field import TypeInfoField
 from .rand_t import RandT
-from .list_t import ListT
+from .scalar_t import ScalarT
+from .typeinfo_extend_randclass import TypeInfoExtendRandClass
+from .typeinfo_randclass import TypeInfoRandClass
+from .typeinfo_field import TypeInfoField
+from .typeinfo_scalar import TypeInfoScalar
 
-class RandClassDecoratorImpl(typeworks.ClsDecoratorBase):
-    """Decorator implementation for @randclass and type-model building code"""
-    
-    def __init__(self, args, kwargs):
+class ExtendRandClassDecoratorImpl(typeworks.ClsDecoratorBase):
+
+    def __init__(self, target, args, kwargs):
         super().__init__(args, kwargs)
-        
-    def get_type_category(self):
-        return TypeKindE.RandClass
-    
-    def _getLibDataType(self, name):
-        ctor = Ctor.inst()
+        self.target = target
+        target_ti = typeworks.TypeInfo.get(target, False)
+        self.target_ti = TypeInfoRandClass.get(target_ti)
+        print("target_ti: %s %s" % (str(target_ti), str(self.target_ti)))
+        pass
 
-        ds_t = ctor.ctxt().findDataTypeStruct(name)
-        
-        if ds_t is not None:
-            raise Exception("Type already registered")
-        else:
-            ds_t = ctor.ctxt().mkDataTypeStruct(name)
-            ctor.ctxt().addDataTypeStruct(ds_t)
-        
-        return ds_t
-    
+    def get_type_category(self):
+        return TypeKindE.ExtendRandClass
+
+    def _getLibDataType(self, name):
+        # Extensions do not have a core-object representation
+        return None
+
     def pre_decorate(self, T):
         # Ensure we've created type-info of appropriate type
-        print("RandClasss.PreDecorate")
-        randclass_ti = TypeInfoRandClass.get(self.get_typeinfo())
+        print("ExtendRandClasss.PreDecorate")
+        randclass_ti = TypeInfoExtendRandClass.get(self.get_typeinfo())
         ctor = Ctor.inst()
         
         print("  TI: %s" % str(randclass_ti))
 
-        typename = ctor.pyType2TypeName(T.__qualname__)
-        randclass_ti.lib_typeobj = self._getLibDataType(typename)
+#        typename = ctor.pyType2TypeName(T.__qualname__)
+#        randclass_ti.lib_typeobj = self._getLibDataType(typename)
 
         print("RandClass %s" % T.__qualname__)
         print("  Bases: %s" % str(T.__bases__))
@@ -79,9 +76,9 @@ class RandClassDecoratorImpl(typeworks.ClsDecoratorBase):
                     self.__collectConstraints(b_randclass_info, b)        
                 
         super().pre_decorate(T)
-        
+
     def init_annotated_field(self, key, value, has_init, init):
-        randclass_ti = TypeInfoRandClass.get(self.get_typeinfo())
+        randclass_ti = TypeInfoExtendRandClass.get(self.get_typeinfo())
         is_rand = False
             
         print("type(value)=%s" % str(type(value)))
@@ -133,45 +130,6 @@ class RandClassDecoratorImpl(typeworks.ClsDecoratorBase):
             print("  Is a list: %s" % str(t.T))
         else:
             raise Exception("Non-scalar fields are not yet supported")
-    
-    def post_decorate(self, T, Tp):
-        randclass_ti = TypeInfoRandClass.get(self.get_typeinfo())
-        super().post_decorate(T, Tp)
-        
-        # Add methods
-        randclass_ti._base_init = Tp.__init__
-        RandClassImpl.addMethods(Tp)
-        
-
-    def pre_register(self):
-        # Finish elaborating the type object by building out the constraints
-        # We first must create a temp object that can be used by the constraint builder
-
-        self.elab_type()
-
-    def elab_type(self):
-        randclass_ti = TypeInfoRandClass.get(self.get_typeinfo())
-        obj = self.create_type_inst()
-        randclass_ti.elab(obj)
-
-    def create_type_inst(self):
-        """
-        Creates the object instance used for type elaboration
-        """
-        ctor = Ctor.inst()
-        randclass_ti = TypeInfoRandClass.get(self.get_typeinfo())
-
-        # Push a frame for the object to find
-        print("create_type: lib_typeobj=%s" % str(randclass_ti.lib_typeobj))
-        ctor.push_scope(None, randclass_ti.lib_typeobj, True)
-        
-        # Now, go create the object itself. Note that we're in
-        # type mode, so type fields are built out
-        obj = self.get_typeinfo().Tp()
-
-        # Note: creation of the object pops the stack frame we pushed
-
-        return obj
 
     def __collectConstraints(self, typeinfo, clsT):
         """Connect constraints from base classes"""

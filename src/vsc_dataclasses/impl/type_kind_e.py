@@ -27,4 +27,5 @@ class TypeKindE(Enum):
     Scalar = auto()
     RandClass = auto()
     RandObj = auto()
+    ExtendRandClass = auto()
     

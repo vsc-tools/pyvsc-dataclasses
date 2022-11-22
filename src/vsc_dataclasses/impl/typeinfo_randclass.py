@@ -40,6 +40,7 @@ class TypeInfoRandClass(TypeInfoVsc):
         self._constraint_m = {}
         self._constraint_l = []
         self._field_typeinfo = []
+        self._extension_l = []
         self._base_init = None
         
     def init(self, 
@@ -169,6 +170,9 @@ class TypeInfoRandClass(TypeInfoVsc):
         return obj
 
     def elab(self, obj):
+        # Apply extensions before elaboration
+        for e in self._extension_l:
+            e.applyExtension(self)
         self.elabConstraints(obj)
 
     def elabConstraints(self, obj):
@@ -190,8 +194,11 @@ class TypeInfoRandClass(TypeInfoVsc):
         ctor.pop_type_mode()
         ctor.pop_scope()
 
+    def addExtension(self, ext):
+        self._extension_l.append(ext)
+
     def addField(self, field_ti, field_obj):
-        if field_obj is not None:
+        if field_obj is not None and self._lib_typeobj is not None:
             self._lib_typeobj.addField(field_obj)
         else:
             print("Skip adding field %s" % field_ti.name)

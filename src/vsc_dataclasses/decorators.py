@@ -19,6 +19,7 @@
 #****************************************************************************
 
 from .impl.constraint_decorator_impl import ConstraintDecoratorImpl
+from .impl.extend_randclass_decorator_impl import ExtendRandClassDecoratorImpl
 from .impl.randobj_decorator_impl import RandObjDecoratorImpl
 from .impl.randclass_decorator_impl import RandClassDecoratorImpl
 from .impl.covergroup_decorator_impl import CovergroupDecoratorImpl
@@ -37,6 +38,9 @@ def covergroup(*args, **kwargs):
         return CovergroupDecoratorImpl({})(args[0])
     else:
         return CovergroupDecoratorImpl(kwargs)
+
+def extend(target, *args, **kwargs):
+    return ExtendRandClassDecoratorImpl(target, args, kwargs)
 
 def randclass(*args, **kwargs):
     if len(args) == 1 and len(kwargs) == 0 and callable(args[0]):
