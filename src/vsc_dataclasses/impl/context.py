@@ -214,10 +214,9 @@ class TypeFieldAttr(IntFlag):
 class TypeExpr(object):
     pass
 
-class TypeExprFieldRefElemKind(IntEnum):
-    Root = auto()
-    ActiveScope = auto()
-    IdxOffset = auto()
+class TypeExprFieldRefKind(IntEnum):
+    TopDownScope = auto()
+    BottomUpScope = auto()
 
 #class TypeExprFieldRefElem(object):
 #    kind : TypeExprFieldRefElemKind

@@ -185,8 +185,7 @@ class Ctor():
 
     @classmethod
     def init(cls, ctxt):
-        from .rand_state import RandState
         cls._inst = Ctor()
         cls._inst._ctxt = ctxt
-        cls._inst._randstate = RandState.mk()
+        cls._inst._randstate = None
         

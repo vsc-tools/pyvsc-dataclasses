@@ -19,6 +19,7 @@
 #****************************************************************************
 
 from .context import Context
+from .context import TypeExprFieldRefKind
 
 from .ctor import Ctor
 from .expr import Expr
@@ -35,19 +36,28 @@ class FieldBaseImpl(object):
 
         if ctor.is_type_mode():
             print("FieldScalarImpl._to_expr (%s)" % self._modelinfo.name, flush=True)
-            ref = ctor.ctxt().mkTypeExprFieldRef()
             mi = self._modelinfo
-            while mi._parent is not None:
-                print("  IDX: %d" % mi._idx)
-                ref.addIdxRef(mi._idx)
-                print("MI: %s" % str(mi))
-                mi = mi._parent
-
             print("is_topdown_scope: %d" % mi._is_topdown_scope)
             if mi._is_topdown_scope:            
-                ref.addRootRef()
+                ref = ctor.ctxt().mkTypeExprFieldRef(
+                    TypeExprFieldRefKind.TopDownScope,
+                    -1
+                )
             else:
-                ref.addActiveScopeRef(-1)
+                ref = ctor.ctxt().mkTypeExprFieldRef(
+                    TypeExprFieldRefKind.BottomUpScope,
+                    -1
+                )
+
+            offset_l = []
+            while mi._parent is not None:
+                print("  IDX: %d" % mi._idx)
+                offset_l.insert(0, mi._idx)
+                print("MI: %s" % str(mi))
+                mi = mi._parent
+            
+            for off in offset_l:
+                ref.addPathElem(off)
         else:        
             print("FieldScalarImpl._to_expr (%s)" % self.model().name(), flush=True)
             ref = ctor.ctxt().mkModelExprFieldRef(self.model())
