@@ -8,7 +8,7 @@ from .type_field import TypeField
 class TypeFieldPhy(ctxt_api.TypeFieldPhy, TypeField):
 
     def __init__(self, name, dtype, attr, init):
-        TypeField.__init__(self, name, attr, dtype)
+        TypeField.__init__(self, name, dtype, attr)
         self._init = ModelVal()
         if init is not None:
             self._init.setBits(init.bits())
@@ -16,3 +16,6 @@ class TypeFieldPhy(ctxt_api.TypeFieldPhy, TypeField):
 
     def getInit(self) -> 'ModelVal':
         return self._init
+    
+    def accept(self, v):
+        v.visitTypeFieldPhy(self)

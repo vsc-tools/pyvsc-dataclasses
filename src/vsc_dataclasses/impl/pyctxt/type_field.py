@@ -33,3 +33,6 @@ class TypeField(ctxt_api.TypeField):
 
     def mkModelField(self, ctxt : 'ModelBuildContext') -> 'ModelField':
         return self._dtype.mkTypeField(ctxt, self)
+    
+    def accept(self, v):
+        v.visitTypeField(self)

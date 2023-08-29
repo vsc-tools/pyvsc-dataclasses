@@ -54,3 +54,6 @@ class DataTypeStruct(ctxt_api.DataTypeStruct):
         ctxt : 'ModelBuildContext',
         type : 'TypeField') -> 'ModelField':
         raise NotImplementedError("mkTypeField")
+
+    def accept(self, v):
+        v.visitDataTypeStruct(self)    

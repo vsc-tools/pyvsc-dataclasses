@@ -311,7 +311,7 @@ class Context(object):
     def findDataTypeInt(self, is_signed : bool, width : int) -> DataTypeInt:
         raise NotImplementedError("findDataTypeInt")
 
-    def mkDataTypeInt(self, is_signed : bool, width : int) -> DataTypeInt:
+    def mkDataTypeInt(self, is_signed : bool, width : int, create : bool=True) -> DataTypeInt:
         raise NotImplementedError("mkDataTypeInt")
 
     def addDataTypeInt(self, t : DataTypeInt) -> bool:

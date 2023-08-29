@@ -23,5 +23,8 @@ class DataTypeInt(ctxt_api.DataType):
         ret._val.setBits(self._width)
         
         return ret
+    
+    def accept(self, v):
+        v.visitDataTypeInt(self)
 
     pass
