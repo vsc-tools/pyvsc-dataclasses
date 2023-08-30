@@ -24,7 +24,10 @@ from vsc_dataclasses.impl.pyctxt.data_type_int import DataTypeInt
 from vsc_dataclasses.impl.pyctxt.data_type_struct import DataTypeStruct
 from vsc_dataclasses.impl.pyctxt.type_constraint_block import TypeConstraintBlock
 from vsc_dataclasses.impl.pyctxt.type_constraint_expr import TypeConstraintExpr
+from vsc_dataclasses.impl.pyctxt.type_expr_bin import TypeExprBin
+from vsc_dataclasses.impl.pyctxt.type_expr_field_ref import TypeExprFieldRef
 from vsc_dataclasses.impl.pyctxt.type_field_phy import TypeFieldPhy
+from ..context import BinOp
 from ..pyctxt.data_type_struct import DataTypeStruct
 from ..pyctxt.visitor_base import VisitorBase
 
@@ -33,6 +36,7 @@ class SystemVerilogClassGen(VisitorBase):
     def __init__(self):
         self._ind = ""
         self._out = io.StringIO()
+        self._type_s = []
         pass
 
     def generate(self, cls : DataTypeStruct):
@@ -53,7 +57,7 @@ class SystemVerilogClassGen(VisitorBase):
                 self.write("bit[%d:0]" % (i._width-1))
 
     def visitTypeConstraintBlock(self, i: TypeConstraintBlock):
-        self.println("constraint %s { // %s" % (i.name(), str(i)))
+        self.println("constraint %s {" % i.name())
         self.inc_indent()
         super().visitTypeConstraintBlock(i)
         self.dec_indent()
@@ -63,6 +67,43 @@ class SystemVerilogClassGen(VisitorBase):
         self.write(self._ind)
         super().visitTypeConstraintExpr(i)
         self.write(";\n")
+
+    def visitTypeExprBin(self, i: TypeExprBin):
+        op_m = {
+            BinOp.Eq : "==",
+            BinOp.Ne : "!=",
+            BinOp.Gt : ">",
+            BinOp.Ge : ">=",
+            BinOp.Lt : "<",
+            BinOp.Le : "<=",
+            BinOp.Add : "+",
+            BinOp.Sub : "-",
+            BinOp.Div : "/",
+            BinOp.Mul : "*",
+            BinOp.Mod : "%",
+            BinOp.BinAnd : "&",
+            BinOp.BinOr  : "|",
+            BinOp.LogAnd : "&&",
+            BinOp.LogOr  : "||",
+            BinOp.Sll    : "<<",
+            BinOp.Srl    : ">>",
+            BinOp.Xor    : "^",
+            BinOp.Not    : "~"
+        }
+
+        i._lhs.accept(self)
+        self.write(" %s " % op_m[i._op])
+        i._rhs.accept(self)
+
+    def visitTypeExprFieldRef(self, i: TypeExprFieldRef):
+        # TODO: assume in type context
+        t = self._type_s[-1]
+
+        for ii in i.getPath():
+            f = t.getField(ii)
+            self.write("%s" % f.name())
+
+        return super().visitTypeExprFieldRef(i)
     
     def visitTypeFieldPhy(self, i: TypeFieldPhy):
         self.write("%srand " % self._ind)
@@ -70,11 +111,15 @@ class SystemVerilogClassGen(VisitorBase):
         self.write(" %s;\n" % i.name())
     
     def visitDataTypeStruct(self, i: DataTypeStruct):
+        self._type_s.append(i)
+
         self.println("class %s;" % self.leaf_name(i.name()))
         self.inc_indent()
         super().visitDataTypeStruct(i)
         self.dec_indent()
         self.println("endclass")
+
+        self._type_s.pop()
     
     def println(self, data):
         self._out.write(self._ind)

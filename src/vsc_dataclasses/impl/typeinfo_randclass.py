@@ -126,27 +126,27 @@ class TypeInfoRandClass(TypeInfoVsc):
         ctor.pop_raw_mode()
 
         # TODO: determine if we're at leaf level (?)
-        if s.dec_inh_depth() == 0:
-            if ctor.is_type_mode():
-                # Time to pop this level. But before we do so, build
-                # out the relevant constraints
-                self._logger.debug("-> build out constraints: %s" % str(self.getConstraints()))
+        # if s.dec_inh_depth() == 0:
+        #     if ctor.is_type_mode():
+        #         # Time to pop this level. But before we do so, build
+        #         # out the relevant constraints
+        #         self._logger.debug("-> build out constraints: %s" % str(self.getConstraints()))
 
-                # This doesn't seem right...
-                ctor.push_expr_mode()
-                for c in self.getConstraints():
-                    cb = ctor.ctxt().mkTypeConstraintBlock(c._name)
-                    ctor.push_constraint_scope(cb)
-                    self._logger.debug("--> Invoke constraint")
-                    c._method_t(obj)
-                    self._logger.debug("<-- Invoke constraint")
-                    ctor.pop_constraint_scope()
+        #         # This doesn't seem right...
+        #         ctor.push_expr_mode()
+        #         for c in self.getConstraints():
+        #             cb = ctor.ctxt().mkTypeConstraintBlock(c._name)
+        #             ctor.push_constraint_scope(cb)
+        #             self._logger.debug("--> Invoke constraint")
+        #             c._method_t(obj)
+        #             self._logger.debug("<-- Invoke constraint")
+        #             ctor.pop_constraint_scope()
                 
-                    obj._modelinfo.libobj.addConstraint(cb)
-                ctor.pop_expr_mode()
+        #             obj._modelinfo.libobj.addConstraint(cb)
+        #         ctor.pop_expr_mode()
 
-                self._logger.debug("<- build out constraints: %s" % str(self.getConstraints()))
-            ctor.pop_scope()
+        #         self._logger.debug("<- build out constraints: %s" % str(self.getConstraints()))
+        #     ctor.pop_scope()
 
     def createInst(
             self,
