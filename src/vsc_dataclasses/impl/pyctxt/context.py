@@ -1,5 +1,7 @@
 
 import vsc_dataclasses.impl as impl
+from ..context import BinOp
+from typing import List
 from vsc_dataclasses.impl.pyctxt.type_field_phy import TypeFieldPhy
 from vsc_dataclasses.impl.pyctxt.type_field_ref import TypeFieldRef
 from .data_type_struct import DataTypeStruct
@@ -7,6 +9,9 @@ from .data_type_enum import DataTypeEnum
 from .data_type_int import DataTypeInt
 from .model_build_context import ModelBuildContext
 from .rand_state import RandState
+from .type_constraint_block import TypeConstraintBlock
+from .type_constraint_expr import TypeConstraintExpr
+from .type_expr_bin import TypeExprBin
 from .type_expr_field_ref import TypeExprFieldRef
 from .type_expr_val import TypeExprVal
 
@@ -83,9 +88,30 @@ class Context(impl.Context):
 
     def mkRandState(self, seed : str) -> RandState:
         return RandState(seed)
+    
+    def mkTypeConstraintBlock(self, name) -> 'TypeConstraintBlock':
+        return TypeConstraintBlock(name)
 
-    def mkTypeExprFieldRef(self) -> 'TypeExprFieldRef':
-        return TypeExprFieldRef()
+    def mkTypeConstraintExpr(self, e : 'TypeExpr') -> 'TypeConstraintExpr':
+        return TypeConstraintExpr(e)
+
+    def mkTypeConstraintIfElse(self, c : 'TypeExpr', ct : 'TypeConstraint') -> 'TypeConstraintIfElse':
+        raise NotImplementedError("mkTypeConstraintIfElse")
+
+    def mkTypeConstraintImplies(self, c : 'TypeExpr', b : 'TypeConstraint') -> 'TypeConstraintImplies':
+        raise NotImplementedError("mkTypeConstraintImplies")
+
+    def mkTypeConstraintSoft(self, c : 'TypeConstraintExpr') -> 'TypeConstraintSoft':
+        raise NotImplementedError("mkTypeConstraintSoft")
+
+    def mkTypeConstraintUnique(self, e : List['TypeExpr']) -> 'TypeConstraintUnique':
+        raise NotImplementedError("mkTypeConstraintUnique")
+
+    def mkTypeExprBin(self, lhs : 'TypeExpr', op : BinOp, rhs : 'TypeExpr') -> 'TypeExprBin':
+        return TypeExprBin(lhs, op, rhs)
+
+    def mkTypeExprFieldRef(self, kind, offset) -> 'TypeExprFieldRef':
+        return TypeExprFieldRef(kind, offset)
 
     def mkTypeExprVal(self, val) -> 'TypeExprVal':
         return TypeExprVal(val)

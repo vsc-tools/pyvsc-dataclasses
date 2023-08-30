@@ -29,7 +29,9 @@ class TypeExprFieldRefElem(object):
 
 class TypeExprFieldRef(ctxt_api.TypeExprFieldRef):
 
-    def __init__(self):
+    def __init__(self, kind, offset):
+        self._kind = kind
+        self._offset = offset
         self._path = []
         pass
 
@@ -47,6 +49,12 @@ class TypeExprFieldRef(ctxt_api.TypeExprFieldRef):
 
     def at(self, idx : int) -> 'TypeExprFieldRefElem':
         raise NotImplementedError("at")
+    
+    def addPathElem(self, idx):
+        self._path.append(idx)
 
     def getPath(self) -> 'List[TypeExprFieldRefElem]':
-        raise NotImplementedError("getPath")
+        return self._path
+
+    def accept(self, v):
+        v.visitTypeExprFieldRef(self)

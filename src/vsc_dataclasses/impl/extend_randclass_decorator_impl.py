@@ -41,7 +41,7 @@ class ExtendRandClassDecoratorImpl(typeworks.ClsDecoratorBase):
         self.target = target
         target_ti = typeworks.TypeInfo.get(target, False)
         self.target_ti = TypeInfoRandClass.get(target_ti)
-        print("target_ti: %s %s" % (str(target_ti), str(self.target_ti)))
+        self.logger.debug("target_ti: %s %s" % (str(target_ti), str(self.target_ti)))
         pass
 
     def get_type_category(self):
@@ -53,18 +53,18 @@ class ExtendRandClassDecoratorImpl(typeworks.ClsDecoratorBase):
 
     def pre_decorate(self, T):
         # Ensure we've created type-info of appropriate type
-        print("ExtendRandClasss.PreDecorate")
+        self.logger.debug("ExtendRandClasss.PreDecorate")
         randclass_ti = TypeInfoExtendRandClass.get(self.get_typeinfo())
         ctor = Ctor.inst()
         
-        print("  TI: %s" % str(randclass_ti))
+        self.logger.debug("  TI: %s" % str(randclass_ti))
 
 #        typename = ctor.pyType2TypeName(T.__qualname__)
 #        randclass_ti.lib_typeobj = self._getLibDataType(typename)
 
-        print("RandClass %s" % T.__qualname__)
-        print("  Bases: %s" % str(T.__bases__))
-        print("  TI: %s ; lib_typeobj: %s" % (str(randclass_ti), str(randclass_ti.lib_typeobj)))
+        self.logger.debug("RandClass %s" % T.__qualname__)
+        self.logger.debug("  Bases: %s" % str(T.__bases__))
+        self.logger.debug("  TI: %s ; lib_typeobj: %s" % (str(randclass_ti), str(randclass_ti.lib_typeobj)))
 
         constraints = typeworks.DeclRgy.pop_decl(ConstraintDecoratorImpl)
         randclass_ti.addConstraints(constraints)
@@ -82,10 +82,10 @@ class ExtendRandClassDecoratorImpl(typeworks.ClsDecoratorBase):
         randclass_ti = TypeInfoExtendRandClass.get(self.get_typeinfo())
         is_rand = False
             
-        print("type(value)=%s" % str(type(value)))
+        self.logger.debug("type(value)=%s" % str(type(value)))
 
         if issubclass(value, RandT):
-            print("isrand")
+            self.logger.debug("isrand")
             t = value.T
             is_rand = True
         else:
@@ -93,10 +93,10 @@ class ExtendRandClassDecoratorImpl(typeworks.ClsDecoratorBase):
 
         if issubclass(t, ScalarT):
             ctor = Ctor.inst()
-            print("   Is a scalar: %d,%d" % (t.W, t.S))
+            self.logger.debug("   Is a scalar: %d,%d" % (t.W, t.S))
 
             if has_init:
-                print("Field: %s init=%s" % (key, str(init)))
+                self.logger.debug("Field: %s init=%s" % (key, str(init)))
                 iv = ctor.ctxt().mkModelVal()
                 iv.setBits(t.W)
                 if t.S:
@@ -128,7 +128,7 @@ class ExtendRandClassDecoratorImpl(typeworks.ClsDecoratorBase):
             randclass_ti.addField(field_ti, field_type_obj)
             self.set_field_initial(key, None)
         elif issubclass(t, ListT):
-            print("  Is a list: %s" % str(t.T))
+            self.logger.debug("  Is a list: %s" % str(t.T))
         else:
             raise Exception("Non-scalar fields are not yet supported")
 
@@ -141,11 +141,11 @@ class ExtendRandClassDecoratorImpl(typeworks.ClsDecoratorBase):
         # First, connect any additional constraints registered in the base class
         for cn,cd in clsT._typeinfo._constraint_m.items():
             if cn not in typeinfo._constraint_m.keys():
-                print("Adding base-class %s" % cn)
+                self.logger.debug("Adding base-class %s" % cn)
                 typeinfo._constraint_l.append(cd)
                 typeinfo._constraint_m[cn] = cd
             else:
-                print("Skipping overridden %s" % cn)
+                self.logger.debug("Skipping overridden %s" % cn)
                 pass
                 
         # Now, keep digging

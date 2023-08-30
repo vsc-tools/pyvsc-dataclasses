@@ -18,6 +18,7 @@
 # @author: mballance
 #****************************************************************************
 
+import logging
 from .typeinfo_vsc import TypeInfoVsc
 from .type_kind_e import TypeKindE
 
@@ -27,12 +28,13 @@ class TypeInfoField(object):
         self.name = name
         self.typeinfo = typeinfo
         self.idx = -1
+        self.logger = logging.getLogger(type(self).__name__)
 
     def createInst(
         self,
         modelinfo_p,
         name,
         idx):
-        print("TypeInfoField.createInst: %s" % name)
+        self.logger.debug("TypeInfoField.createInst: %s" % name)
         return self.typeinfo.createInst(modelinfo_p, name, idx)
 

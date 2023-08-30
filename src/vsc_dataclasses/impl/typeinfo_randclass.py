@@ -63,7 +63,7 @@ class TypeInfoRandClass(TypeInfoVsc):
 
         s = ctor.scope()
 
-        print("s=%s" % str(s))
+        self._logger.debug("s=%s" % str(s))
 
         ctor.push_raw_mode()
 
@@ -81,14 +81,14 @@ class TypeInfoRandClass(TypeInfoVsc):
                 # Need a new scope
                 if ctor.is_type_mode():
                     raise Exception("Shouldn't hit this in type mode")
-                print("TODO: Create root field for %s" % self.lib_typeobj.name())
+                self._logger.debug("TODO: Create root field for %s" % self.lib_typeobj.name())
                 obj._modelinfo.libobj = self.lib_typeobj.mkRootField(ctxt_b, "<>", False)
                 obj._randstate = None
                 s = ctor.push_scope(obj, obj._modelinfo.libobj, False)
         else:
             # Push a new scope. Know we're in non-type mode
-            print("Self: %s" % str(self), flush=True)
-            print("TODO: Create root field for %s" % self.lib_typeobj.name())
+            self._logger.debug("Self: %s" % str(self))
+            self._logger.debug("TODO: Create root field for %s" % self.lib_typeobj.name())
             obj._modelinfo.libobj = self.lib_typeobj.mkRootField(ctxt_b, "<>", False)
             obj._randstate = None
             s = ctor.push_scope(obj, obj._modelinfo.libobj, False)
@@ -97,28 +97,28 @@ class TypeInfoRandClass(TypeInfoVsc):
         modelinfo.libobj = s.lib_scope
 
         if not ctor.is_type_mode():
-            print("Set Data: %08x" % id(obj))
+            self._logger.debug("Set Data: %08x" % id(obj))
             if s.lib_scope is not None:
                 s.lib_scope.setFieldData(obj)
         
         for field_ti in self.getFields():
-            print("name: %s" % field_ti.name)
+            self._logger.debug("name: %s" % field_ti.name)
 
             # What to pass here?
             
             # Grab the appropriate field from the scope
-            print("lib_scope=%s" % str(s.lib_scope), flush=True)
+            self._logger.debug("lib_scope=%s" % str(s.lib_scope))
 
             # Field constructor responsible for adding itself
             # to the parent modelinfo
-            print("field_ti .name=%s .idx: %d" % (field_ti.name, field_ti.idx))
-            print("  getField: %s" % str(s.lib_scope.getField(field_ti.idx)))
+            self._logger.debug("field_ti .name=%s .idx: %d" % (field_ti.name, field_ti.idx))
+            self._logger.debug("  getField: %s" % str(s.lib_scope.getField(field_ti.idx)))
             f = field_ti.createInst(
                 modelinfo,
                 field_ti.name,
                 field_ti.idx)
 
-            print("Set Attr: %s=%s" % (field_ti.name, str(f)))
+            self._logger.debug("Set Attr: %s=%s" % (field_ti.name, str(f)))
             setattr(obj, field_ti.name, f)
             
 #            s.lib_scope.addField(f.model())
@@ -130,20 +130,22 @@ class TypeInfoRandClass(TypeInfoVsc):
             if ctor.is_type_mode():
                 # Time to pop this level. But before we do so, build
                 # out the relevant constraints
-                print("TODO: build out constraints: %s" % str(self.getConstraints()))
+                self._logger.debug("-> build out constraints: %s" % str(self.getConstraints()))
 
                 # This doesn't seem right...
                 ctor.push_expr_mode()
                 for c in self.getConstraints():
                     cb = ctor.ctxt().mkTypeConstraintBlock(c._name)
                     ctor.push_constraint_scope(cb)
-                    print("--> Invoke constraint")
+                    self._logger.debug("--> Invoke constraint")
                     c._method_t(obj)
-                    print("<-- Invoke constraint")
+                    self._logger.debug("<-- Invoke constraint")
                     ctor.pop_constraint_scope()
                 
                     obj._modelinfo.libobj.addConstraint(cb)
                 ctor.pop_expr_mode()
+
+                self._logger.debug("<- build out constraints: %s" % str(self.getConstraints()))
             ctor.pop_scope()
 
     def createInst(
@@ -201,7 +203,7 @@ class TypeInfoRandClass(TypeInfoVsc):
         if field_obj is not None and self._lib_typeobj is not None:
             self._lib_typeobj.addField(field_obj)
         else:
-            print("Skip adding field %s" % field_ti.name)
+            self._logger.debug("Skip adding field %s" % field_ti.name)
         field_ti.idx = len(self._field_typeinfo)
         self._field_typeinfo.append(field_ti)
 

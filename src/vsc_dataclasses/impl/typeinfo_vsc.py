@@ -19,6 +19,7 @@
 #****************************************************************************
 
 import typeworks
+import logging
 from .modelinfo import ModelInfo
 
 class TypeInfoVsc(object):
@@ -30,6 +31,7 @@ class TypeInfoVsc(object):
         self._kind = kind
         self._lib_typeobj = None
         self._inner = inner
+        self._logger = logging.getLogger(type(self).__name__)
 
     def createInst(
         self,

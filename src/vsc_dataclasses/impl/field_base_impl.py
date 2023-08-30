@@ -18,6 +18,8 @@
 # @author: mballance
 #****************************************************************************
 
+import logging
+
 from .context import Context
 from .context import TypeExprFieldRefKind
 
@@ -30,14 +32,15 @@ class FieldBaseImpl(object):
     
     def __init__(self, name, typeinfo, idx):
         self._modelinfo = ModelInfo(self, name, typeinfo, idx)
+        self._logger = logging.getLogger(type(self).__name__)
         
     def _to_expr(self):
         ctor = Ctor.inst()
 
         if ctor.is_type_mode():
-            print("FieldScalarImpl._to_expr (%s)" % self._modelinfo.name, flush=True)
+            self._logger.debug("FieldScalarImpl._to_expr (%s)" % self._modelinfo.name)
             mi = self._modelinfo
-            print("is_topdown_scope: %d" % mi._is_topdown_scope)
+            self._logger.debug("is_topdown_scope: %d" % mi._is_topdown_scope)
             if mi._is_topdown_scope:            
                 ref = ctor.ctxt().mkTypeExprFieldRef(
                     TypeExprFieldRefKind.TopDownScope,
@@ -51,15 +54,15 @@ class FieldBaseImpl(object):
 
             offset_l = []
             while mi._parent is not None:
-                print("  IDX: %d" % mi._idx)
+                self._logger.debug("  IDX: %d" % mi._idx)
                 offset_l.insert(0, mi._idx)
-                print("MI: %s" % str(mi))
+                self._logger.debug("MI: %s" % str(mi))
                 mi = mi._parent
             
             for off in offset_l:
                 ref.addPathElem(off)
         else:        
-            print("FieldScalarImpl._to_expr (%s)" % self.model().name(), flush=True)
+            self._logger.debug("FieldScalarImpl._to_expr (%s)" % self.model().name())
             ref = ctor.ctxt().mkModelExprFieldRef(self.model())
         
         return Expr(ref)

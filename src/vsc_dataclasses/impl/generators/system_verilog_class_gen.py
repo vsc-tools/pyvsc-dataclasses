@@ -22,6 +22,8 @@
 import io
 from vsc_dataclasses.impl.pyctxt.data_type_int import DataTypeInt
 from vsc_dataclasses.impl.pyctxt.data_type_struct import DataTypeStruct
+from vsc_dataclasses.impl.pyctxt.type_constraint_block import TypeConstraintBlock
+from vsc_dataclasses.impl.pyctxt.type_constraint_expr import TypeConstraintExpr
 from vsc_dataclasses.impl.pyctxt.type_field_phy import TypeFieldPhy
 from ..pyctxt.data_type_struct import DataTypeStruct
 from ..pyctxt.visitor_base import VisitorBase
@@ -49,6 +51,18 @@ class SystemVerilogClassGen(VisitorBase):
                 self.write("bit")
             else:
                 self.write("bit[%d:0]" % (i._width-1))
+
+    def visitTypeConstraintBlock(self, i: TypeConstraintBlock):
+        self.println("constraint %s { // %s" % (i.name(), str(i)))
+        self.inc_indent()
+        super().visitTypeConstraintBlock(i)
+        self.dec_indent()
+        self.println("}")
+
+    def visitTypeConstraintExpr(self, i: TypeConstraintExpr):
+        self.write(self._ind)
+        super().visitTypeConstraintExpr(i)
+        self.write(";\n")
     
     def visitTypeFieldPhy(self, i: TypeFieldPhy):
         self.write("%srand " % self._ind)

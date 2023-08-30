@@ -22,6 +22,11 @@
 
 from .data_type_int import DataTypeInt
 from .data_type_struct import DataTypeStruct
+from .type_constraint import TypeConstraint
+from .type_constraint_block import TypeConstraintBlock
+from .type_constraint_expr import TypeConstraintExpr
+from .type_expr_bin import TypeExprBin
+from .type_expr_field_ref import TypeExprFieldRef
 from .type_field import TypeField
 from .type_field_phy import TypeFieldPhy
 
@@ -35,6 +40,23 @@ class VisitorBase(object):
             f.accept(self)
         for c in i.getConstraints():
             c.accept(self)
+
+    def visitTypeConstraint(self, i : TypeConstraint):
+        pass
+
+    def visitTypeConstraintBlock(self, i : TypeConstraintBlock):
+        for c in i.getConstraints():
+            c.accept(self)
+
+    def visitTypeConstraintExpr(self, i : TypeConstraintExpr):
+        i.expr().accept(self)
+
+    def visitTypeExprBin(self, i : TypeExprBin):
+        i._lhs.accept(self)
+        i._rhs.accept(self)
+
+    def visitTypeExprFieldRef(self, i : TypeExprFieldRef):
+        pass
 
     def visitTypeField(self, i : TypeField):
         i.getDataType().accept(self)

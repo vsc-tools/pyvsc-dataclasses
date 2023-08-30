@@ -1,4 +1,5 @@
 
+import traceback
 from typing import Callable, List
 import vsc_dataclasses.impl.context as ctxt_api
 from vsc_dataclasses.impl.pyctxt.model_field import ModelField
@@ -29,6 +30,8 @@ class DataTypeStruct(ctxt_api.DataTypeStruct):
         return self._fields[idx]
 
     def addConstraint(self, c : 'TypeConstraint'):
+        print("addConstraint")
+        traceback.print_stack()
         self._constraints.append(c)
 
     def getConstraints(self) -> List['TypeConstraint']:
