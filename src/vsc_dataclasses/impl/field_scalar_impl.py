@@ -67,7 +67,7 @@ class FieldScalarImpl(FieldBaseImpl):
     def _bin_expr(self, op, rhs):
         ctor = Ctor.inst()
         
-        print("_bin_expr: op=%s" % op, flush=True)
+        self._logger.debug("_bin_expr: op=%s" % op)
 
         if isinstance(rhs, Expr):
             rhs_e = rhs
@@ -81,7 +81,7 @@ class FieldScalarImpl(FieldBaseImpl):
         lhs_e = Expr.toExpr(self)
         ctor.pop_expr(lhs_e)
         
-        print("lhs_e=%s rhs_e=%s" % (str(lhs_e), str(rhs_e)), flush=True)
+        self._logger.debug("lhs_e=%s rhs_e=%s" % (str(lhs_e), str(rhs_e)))
 
         if ctor.is_type_mode():
             model = ctor.ctxt().mkTypeExprBin(

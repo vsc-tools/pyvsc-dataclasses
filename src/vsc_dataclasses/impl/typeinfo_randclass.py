@@ -112,7 +112,7 @@ class TypeInfoRandClass(TypeInfoVsc):
             # Field constructor responsible for adding itself
             # to the parent modelinfo
             self._logger.debug("field_ti .name=%s .idx: %d" % (field_ti.name, field_ti.idx))
-            self._logger.debug("  getField: %s" % str(s.lib_scope.getField(field_ti.idx)))
+#            self._logger.debug("  getField: %s" % str(s.lib_scope.getField(field_ti.idx)))
             f = field_ti.createInst(
                 modelinfo,
                 field_ti.name,
@@ -153,7 +153,14 @@ class TypeInfoRandClass(TypeInfoVsc):
             modelinfo_p,
             name,
             idx):
+        ctor = Ctor.inst()
+
+        # TODO: need to push a scope with the lib_typeobj for this field
+        ctor.push_scope(None, self.lib_typeobj.getField(idx), True)
+        ctor.push_type_mode()
         field = self.info.Tp()
+        ctor.pop_type_mode()
+
         # Back-patch name and index -- something not available inside the constructor
         field._modelinfo.name = name
         field._modelinfo.idx = idx

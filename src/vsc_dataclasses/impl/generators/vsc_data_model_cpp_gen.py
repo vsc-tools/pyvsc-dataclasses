@@ -1,5 +1,5 @@
 #****************************************************************************
-#* system_verilog_class_gen.py
+#* vsc_data_model_cpp_gen.py
 #*
 #* Copyright 2022 Matthew Ballance and Contributors
 #*
@@ -30,41 +30,20 @@ from vsc_dataclasses.impl.pyctxt.type_field_phy import TypeFieldPhy
 from ..context import BinOp
 from ..pyctxt.data_type_struct import DataTypeStruct
 from ..pyctxt.visitor_base import VisitorBase
-from .collect_struct_deps import CollectStructDeps
 
-class SystemVerilogClassGen(VisitorBase):
+class VscDataModelCppGen(VisitorBase):
 
     def __init__(self):
         self._ind = ""
         self._out = io.StringIO()
         self._type_s = []
-        self._field_name_s = []
-        self._field_ctor = []
-        pass
 
     def generate(self, cls : DataTypeStruct):
         self._out = io.StringIO()
-
-        cls_l = CollectStructDeps(None).collect(cls)
-
-        for i,cls_t in enumerate(cls_l):
-            self._field_ctor.clear()
-
-            if i > 0:
-                self._out.write("\n")
-            cls_t.accept(self)
-
+        cls.accept(self)
         return self._out.getvalue()
-    
-    def _build_ctor(self):
-        self.println("function new();")
-        self.inc_indent()
-        for c in self._field_ctor:
-            c()
-        self.dec_indent()
-        self.println("endfunction")
         pass
-    
+
     def visitDataTypeInt(self, i: DataTypeInt):
         if (i._is_signed):
             if i._width == 1:
@@ -120,49 +99,29 @@ class SystemVerilogClassGen(VisitorBase):
         # TODO: assume in type context
         t = self._type_s[-1]
 
-        for iii,ii in enumerate(i.getPath()):
-            if iii > 0:
-                self.write(".")
+        for ii in i.getPath():
             f = t.getField(ii)
             self.write("%s" % f.name())
 
         return super().visitTypeExprFieldRef(i)
     
     def visitTypeFieldPhy(self, i: TypeFieldPhy):
-        self._field_name_s.append(i.name())
         self.write("%srand " % self._ind)
         i.getDataType().accept(self)
         self.write(" %s;\n" % i.name())
-        self._field_name_s.pop()
     
     def visitDataTypeStruct(self, i: DataTypeStruct):
-        if len(self._type_s) > 0:
-            # This is a field, so just display the typename
-            self.write("%s" % self.leaf_name(i.name()))
+        self._type_s.append(i)
 
-            if len(self._field_name_s) > 0:
-                def write_ctor(name):
-                   self.println("%s = new();" % name)
-                name = self._field_name_s[-1]
-                self._field_ctor.append(lambda : write_ctor(name))
-        else:
-            # Render the type declaration
-            self._type_s.append(i)
+        self.println("class %s;" % self.leaf_name(i.name()))
+        self.inc_indent()
+        super().visitDataTypeStruct(i)
+        self.dec_indent()
+        self.println("endclass")
 
-            self.println("class %s;" % self.leaf_name(i.name()))
-            self.inc_indent()
-            super().visitDataTypeStruct(i)
-
-            if len(self._type_s) == 1:
-                self.println()
-                self._build_ctor()
-                self.println()
-
-            self.dec_indent()
-            self.println("endclass")
-            self._type_s.pop()
+        self._type_s.pop()
     
-    def println(self, data=""):
+    def println(self, data):
         self._out.write(self._ind)
         self._out.write(data)
         self._out.write("\n")
@@ -182,4 +141,3 @@ class SystemVerilogClassGen(VisitorBase):
     def leaf_name(self, name):
         elems = name.split('.')
         return elems[-1]
-

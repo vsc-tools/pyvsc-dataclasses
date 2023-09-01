@@ -7,5 +7,7 @@ package:
     dev-deps:
     - name: pytypeworks
       url: https://github.com/mballance/pytypeworks.git
+    - name: toposort
+      src: pypi
 
 

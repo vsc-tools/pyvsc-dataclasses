@@ -18,6 +18,7 @@
 # @author: mballance
 #****************************************************************************
 import typeworks
+from typeworks.impl.typeinfo import TypeInfo
 from .typeinfo_scalar import TypeInfoScalar
 from .constraint_decorator_impl import ConstraintDecoratorImpl
 
@@ -30,6 +31,7 @@ from .type_kind_e import TypeKindE
 from .typeinfo_field import TypeInfoField
 from .rand_t import RandT
 from .list_t import ListT
+from .typeinfo_vsc import TypeInfoVsc
 
 class RandClassDecoratorImpl(typeworks.ClsDecoratorBase):
     """Decorator implementation for @randclass and type-model building code"""
@@ -132,7 +134,47 @@ class RandClassDecoratorImpl(typeworks.ClsDecoratorBase):
         elif issubclass(t, ListT):
             print("  TODO: Is a list: %s" % str(t.T))
         else:
-            raise Exception("Non-scalar fields are not yet supported")
+            cls_ti_t = TypeInfo.get(t, False)
+
+            if cls_ti_t is None:
+                raise Exception("Type %s is not a VSC type" % str(t))
+            
+            cls_ti = TypeInfoRandClass.get(cls_ti_t)
+
+            ctor = Ctor.inst()
+            self.logger.debug("   Is a RandClass Type")
+
+            if has_init:
+                self.logger.debug("Field: %s init=%s" % (key, str(init)))
+                iv = ctor.ctxt().mkModelVal()
+                iv.setBits(t.W)
+                if t.S:
+                    iv.set_val_i(init)
+                else:
+                    iv.set_val_u(init)
+            else:
+                iv = None
+                
+            # Create a TypeField instance to represent the field
+            attr = TypeFieldAttr.NoAttr
+                    
+            if is_rand:
+                attr |= TypeFieldAttr.Rand
+
+            field_type_obj = ctor.ctxt().mkTypeFieldPhy(
+                key,
+                cls_ti._lib_typeobj,
+                False,
+                attr,
+                iv) # TODO: initial value
+
+            field_ti = TypeInfoField(key, cls_ti)
+            randclass_ti.addField(field_ti, field_type_obj)
+            self.set_field_initial(key, None)            
+            # cls_ti._lib_typeobj
+
+#            print("cls_ti: %s" % str(cls_ti))
+#            raise Exception("Non-scalar fields are not yet supported")
     
     def post_decorate(self, T, Tp):
         randclass_ti = TypeInfoRandClass.get(self.get_typeinfo())
