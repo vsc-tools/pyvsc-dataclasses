@@ -4,6 +4,8 @@ from ..context import BinOp
 from typing import List
 from vsc_dataclasses.impl.pyctxt.type_field_phy import TypeFieldPhy
 from vsc_dataclasses.impl.pyctxt.type_field_ref import TypeFieldRef
+from .data_type_list import DataTypeList
+from .data_type_list_fixed_size import DataTypeListFixedSize
 from .data_type_struct import DataTypeStruct
 from .data_type_enum import DataTypeEnum
 from .data_type_int import DataTypeInt
@@ -11,6 +13,8 @@ from .model_build_context import ModelBuildContext
 from .rand_state import RandState
 from .type_constraint_block import TypeConstraintBlock
 from .type_constraint_expr import TypeConstraintExpr
+from .type_constraint_foreach import TypeConstraintForeach
+from .type_constraint_scope import TypeConstraintScope
 from .type_expr_bin import TypeExprBin
 from .type_expr_field_ref import TypeExprFieldRef
 from .type_expr_val import TypeExprVal
@@ -24,6 +28,8 @@ class Context(impl.Context):
         self._dt_enum_m = {}
         self._dt_sint_m = {}
         self._dt_uint_m = {}
+        self._dt_list_m = {}
+        self._dt_list_fixed_sz_m = {}
 
     def findDataTypeEnum(self, name) -> DataTypeEnum:
         if name in self._dt_enum_m.keys():
@@ -66,6 +72,42 @@ class Context(impl.Context):
             else:
                 self._dt_uint_m[t._width] = t
         return True
+    
+    def findDataTypeList(self, t, create : bool=True) -> DataTypeList:
+        if t in self._dt_list_m.keys():
+            return self._dt_list_m[t]
+        elif create:
+            list_t = DataTypeList(t)
+            self._dt_list_m[t] = list_t
+            return list_t
+        else:
+            return None
+    
+    def mkDataTypeList(self, t, owned : bool) -> DataTypeList:
+        return DataTypeList(t)
+    
+    def addDataTypeList(self, t : DataTypeList):
+        self._dt_list_m[t.getElemType()] = t
+
+    def findDataTypeListFixedSize(self, t, sz, create : bool=True) -> DataTypeListFixedSize:
+        if t in self._dt_list_fixed_sz_m.keys() and sz in self._dt_list_fixed_sz_m[t].keys():
+            return self._dt_list_fixed_sz_m[t][sz]
+        elif create:
+            list_t = DataTypeListFixedSize(t, sz)
+            if t not in self._dt_list_fixed_sz_m.keys():
+                self._dt_list_fixed_sz_m[t] = {}
+            self._dt_list_fixed_sz_m[t][sz] = list_t
+            return list_t
+        else:
+            return None
+    
+    def mkDataTypeListFixedSize(self, t, owned : bool, sz) -> DataTypeListFixedSize:
+        return DataTypeListFixedSize(t, sz)
+    
+    def addDataTypeListFixedSize(self, t : DataTypeListFixedSize):
+        if t.getElemType() not in self._dt_list_fixed_sz_m.keys():
+            self._dt_list_fixed_sz_m[t.getElemType()] = {}
+        self._dt_list_fixed_sz_m[t.getElemType()][t.getSize()] = t
 
     def findDataTypeStruct(self, name) -> DataTypeStruct:
         if name in self._dt_struct_m.keys():
@@ -94,6 +136,14 @@ class Context(impl.Context):
 
     def mkTypeConstraintExpr(self, e : 'TypeExpr') -> 'TypeConstraintExpr':
         return TypeConstraintExpr(e)
+
+    def mkTypeConstraintForeach(self, 
+                            target_e : 'TypeExpr',
+                            body_c) -> 'TypeConstraintForeach':
+        return TypeConstraintForeach(target_e, body_c)
+    
+    def mkTypeConstraintScope(self):
+        return TypeConstraintScope()
 
     def mkTypeConstraintIfElse(self, c : 'TypeExpr', ct : 'TypeConstraint') -> 'TypeConstraintIfElse':
         raise NotImplementedError("mkTypeConstraintIfElse")

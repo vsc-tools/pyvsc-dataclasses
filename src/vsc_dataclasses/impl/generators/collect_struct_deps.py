@@ -49,8 +49,6 @@ class CollectStructDeps(VisitorBase):
         t.accept(self)
 
         result = list(toposort.toposort(self._dep_m))
-        print("Deps:\n%s" % str(self._dep_m))
-        print("result:\n%s" % str(result))
 
         ret = []
         for entries in result:

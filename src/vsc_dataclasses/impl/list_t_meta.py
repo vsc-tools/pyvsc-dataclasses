@@ -18,7 +18,6 @@
 # @author: mballance
 #****************************************************************************
 
-from .list_t import ListT
 
 class ListTMeta(type):
     
@@ -26,10 +25,14 @@ class ListTMeta(type):
         self.type_m = {}
         
     def __getitem__(self, item):
+        from .list_t import ListT
+        from .list_tt_meta import ListTTMeta
+
         if item in self.type_m.keys():
             return self.type_m[item]
         else:
-            t = type("list_t[%s]" % str(item), (ListT,), {})
+            t = ListTTMeta("list_t[%s]" % str(item), (ListT,), 
+                dict(T=item, DIM=[]))
             t.T = item
             self.type_m[item] = t
             return t

@@ -23,6 +23,7 @@ from .ctor import Ctor
 from .enum_t import EnumT
 from .field_list_object_impl import FieldListObjectImpl
 from .field_list_scalar_impl import FieldListScalarImpl
+from .list_tt_meta import ListTTMeta
 from .scalar_t import ScalarT
 from .type_kind_e import TypeKindE
 from .typeinfo_vsc import TypeInfoVsc
@@ -30,6 +31,7 @@ from .typeinfo_vsc import TypeInfoVsc
 
 class ListT(object):
     T = None
+    DIM = []
     
     def __new__(cls,
                 t,

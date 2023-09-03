@@ -1,5 +1,5 @@
 #****************************************************************************
-#* type_constraint_scope.py
+#* data_type_list_fixed_size.py
 #*
 #* Copyright 2022 Matthew Ballance and Contributors
 #*
@@ -19,14 +19,17 @@
 #*     Author: 
 #*
 #****************************************************************************
+import vsc_dataclasses.impl.context as ctxt_api
+from .data_type_list import DataTypeList
 
-class TypeConstraintScope(object):
+class DataTypeListFixedSize(DataTypeList, ctxt_api.DataTypeListFixedSize):
 
-    def __init__(self):
-        self._constraints = []
+    def __init__(self, elem_t, sz):
+        super().__init__(elem_t)
+        self._sz = sz
 
-    def getConstraints(self):
-        return self._constraints
-    
-    def addConstraint(self, c):
-        self._constraints.append(c)
+    def getSize(self):
+        return self._sz
+
+    def accept(self, v):
+        v.visitDataTypeListFixedSize(self)

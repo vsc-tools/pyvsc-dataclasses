@@ -27,7 +27,8 @@ from vsc_dataclasses.impl.pyctxt.type_constraint_expr import TypeConstraintExpr
 from vsc_dataclasses.impl.pyctxt.type_expr_bin import TypeExprBin
 from vsc_dataclasses.impl.pyctxt.type_expr_field_ref import TypeExprFieldRef
 from vsc_dataclasses.impl.pyctxt.type_field_phy import TypeFieldPhy
-from ..context import BinOp
+from .collect_struct_deps import CollectStructDeps
+from ..context import BinOp, TypeExprFieldRefKind
 from ..pyctxt.data_type_struct import DataTypeStruct
 from ..pyctxt.visitor_base import VisitorBase
 
@@ -37,46 +38,75 @@ class VscDataModelCppGen(VisitorBase):
         self._ind = ""
         self._out = io.StringIO()
         self._type_s = []
+        self._constraint_scope_s = []
+        self._ctxt = "ctxt"
+        self._emit_type_mode = 0
+        self._comma = []
 
     def generate(self, cls : DataTypeStruct):
         self._out = io.StringIO()
-        cls.accept(self)
+        cls_l = CollectStructDeps(None).collect(cls)
+
+        for i,cls_t in enumerate(cls_l):
+#            self._field_ctor.clear()
+
+            if i > 0:
+                self._out.write("\n")
+            cls_t.accept(self)
+
         return self._out.getvalue()
-        pass
 
     def visitDataTypeInt(self, i: DataTypeInt):
-        if (i._is_signed):
-            if i._width == 1:
-                self.write("bit signed")
-            else:
-                self.write("bit[%d:0] signed" % (i._width-1))
+        if self._emit_type_mode > 0:
+            # We're locating the desired type
+            self.write("%s->findDataTypeInt(%d, %s)" % (
+                self._ctxt,
+                i._width,
+                "true" if i._is_signed else "false"
+            ))
         else:
-            if i._width == 1:
-                self.write("bit")
+            # We're declaring the type
+            if (i._is_signed):
+                if i._width == 1:
+                    self.write("bit signed")
+                else:
+                    self.write("bit[%d:0] signed" % (i._width-1))
             else:
-                self.write("bit[%d:0]" % (i._width-1))
+                if i._width == 1:
+                    self.write("bit")
+                else:
+                    self.write("bit[%d:0]" % (i._width-1))
 
     def visitTypeConstraintBlock(self, i: TypeConstraintBlock):
-        self.println("constraint %s {" % i.name())
-        self.inc_indent()
+        t = self._type_s[-1]
+
+        self._constraint_scope_s.append("%s_%s_c" % (self.leaf_name(t.name()), i.name()))
+
+        self.println("vsc::dm::ITypeConstraintBlock *%s_%s_c = %s->mkTypeConstraintBlock(\"%s\");" % (
+            self.leaf_name(t.name()), i.name(),
+            self._ctxt, i.name()
+        ))
+
         super().visitTypeConstraintBlock(i)
-        self.dec_indent()
-        self.println("}")
+        self.println("%s_t->addConstraint(%s_%s_c);" % (self._ctxt, self.leaf_name(t.name()), i.name()))
+        self._constraint_scope_s.pop()
 
     def visitTypeConstraintExpr(self, i: TypeConstraintExpr):
-        self.write(self._ind)
-        super().visitTypeConstraintExpr(i)
-        self.write(";\n")
+        self.println("%s->addConstraint(" % self._constraint_scope_s[-1])
+        self.inc_indent()
+        i.expr().accept(self)
+        self.dec_indent()
+        self.println(");")
 
     def visitTypeExprBin(self, i: TypeExprBin):
         op_m = {
-            BinOp.Eq : "==",
-            BinOp.Ne : "!=",
-            BinOp.Gt : ">",
-            BinOp.Ge : ">=",
-            BinOp.Lt : "<",
-            BinOp.Le : "<=",
-            BinOp.Add : "+",
+            BinOp.Eq : "vsc::dm::BinOp::Eq",
+            BinOp.Ne : "vsc::dm::BinOp::Ne",
+            BinOp.Gt : "vsc::dm::BinOp::Gt",
+            BinOp.Ge : "vsc::dm::BinOp::Ge",
+            BinOp.Lt : "vsc::dm::BinOp::Lt",
+            BinOp.Le : "vsc::dm::BinOp::Le",
+            BinOp.Add : "vsc::Dm::BinOp::Add",
             BinOp.Sub : "-",
             BinOp.Div : "/",
             BinOp.Mul : "*",
@@ -90,34 +120,73 @@ class VscDataModelCppGen(VisitorBase):
             BinOp.Xor    : "^",
             BinOp.Not    : "~"
         }
-
+        self.println("%s->mkTypeExprBin(" % self._ctxt)
+        self.inc_indent()
+        self._comma.append(True)
         i._lhs.accept(self)
-        self.write(" %s " % op_m[i._op])
+        self.println("%s," % op_m[i._op])
+        self._comma.pop()
+        self._comma.append(False)
         i._rhs.accept(self)
+        self._comma.pop()
+        self.dec_indent()
+        self.println(")%s" % self.comma())
 
     def visitTypeExprFieldRef(self, i: TypeExprFieldRef):
+        if i.getRootRefKind() == TypeExprFieldRefKind.TopDownScope:
+            ref_base = "vsc::dm::ITypeExprFieldRef::RootRefKind::TopDownScope"
+        else:
+            ref_base = "vsc::dm::ITypeExprFieldRef::RootRefKind::BottomUpScope"
+
+        ref_list_s = list(map(lambda i: str(i), i.getPath()))
+        self.println("%s->mkTypeExprFieldRef(%s, {%s})%s" % (
+            self._ctxt,
+            ref_base,
+            ",".join(ref_list_s),
+            self.comma()))
+
         # TODO: assume in type context
-        t = self._type_s[-1]
-
-        for ii in i.getPath():
-            f = t.getField(ii)
-            self.write("%s" % f.name())
-
-        return super().visitTypeExprFieldRef(i)
+#        t = self._type_s[-1]
+#
+#        for ii in i.getPath():
+#            f = t.getField(ii)
+#            self.write("%s" % f.name())
+#        return super().visitTypeExprFieldRef(i)
     
     def visitTypeFieldPhy(self, i: TypeFieldPhy):
-        self.write("%srand " % self._ind)
+        # First, find the type
+        self.write("%svsc::dm::IDataType *%s_t = " % (self._ind, i.name()))
+        self._emit_type_mode += 1
         i.getDataType().accept(self)
-        self.write(" %s;\n" % i.name())
+        self._emit_type_mode -= 1
+        self.write(";\n")
+        self.println("ITypeField *%s = %s->mkTypeFieldPhy(\"%s\", %s_t, false);" % (
+            i.name(),
+            self._ctxt,
+            i.name(),
+            i.name()
+        ))
     
     def visitDataTypeStruct(self, i: DataTypeStruct):
         self._type_s.append(i)
 
-        self.println("class %s;" % self.leaf_name(i.name()))
-        self.inc_indent()
-        super().visitDataTypeStruct(i)
-        self.dec_indent()
-        self.println("endclass")
+        if self._emit_type_mode > 0:
+            # We're emitting the type in order to declare a field
+            self.write("%s->findDataTypeStruct(\"%s\")" % (self._ctxt, self.leaf_name(i.name())))
+        else:
+            # We're declaring a type
+            self.println("vsc::dm::IDataTypeStruct *%s_t = %s->mkDataTypeStruct(\"%s\");" % (
+                self.leaf_name(i.name()),
+                self._ctxt,
+                self.leaf_name(i.name())))
+            self.println("{")
+            self.inc_indent()
+            super().visitDataTypeStruct(i)
+            self.println("%s->addDataTypeStruct(%s_t);" % (
+                self._ctxt,
+                self.leaf_name(i.name())))
+            self.dec_indent()
+            self.println("}")
 
         self._type_s.pop()
     
@@ -137,6 +206,9 @@ class VscDataModelCppGen(VisitorBase):
             self._ind = self._ind[:-4]
         else:
             self._ind = ""
+
+    def comma(self):
+        return "," if len(self._comma) > 0 and self._comma[-1] else ""
 
     def leaf_name(self, name):
         elems = name.split('.')

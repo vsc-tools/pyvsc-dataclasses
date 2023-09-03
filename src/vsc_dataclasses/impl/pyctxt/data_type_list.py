@@ -1,5 +1,5 @@
 #****************************************************************************
-#* type_constraint_scope.py
+#* data_type_list.py
 #*
 #* Copyright 2022 Matthew Ballance and Contributors
 #*
@@ -19,14 +19,15 @@
 #*     Author: 
 #*
 #****************************************************************************
+import vsc_dataclasses.impl.context as ctxt_api
 
-class TypeConstraintScope(object):
+class DataTypeList(ctxt_api.DataTypeList):
 
-    def __init__(self):
-        self._constraints = []
+    def __init__(self, elem_t):
+        self._elem_t = elem_t
 
-    def getConstraints(self):
-        return self._constraints
-    
-    def addConstraint(self, c):
-        self._constraints.append(c)
+    def getElemType(self):
+        return self._elem_t
+
+    def accept(self, v):
+        v.visitDataTypeList(self)

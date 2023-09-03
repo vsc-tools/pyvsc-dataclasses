@@ -76,6 +76,16 @@ class DataTypeEnum(DataType):
 class DataTypeInt(DataType):
     pass
 
+class DataTypeList(DataType):
+
+    def getElemType(self):
+        raise NotImplementedError("getElemType")
+    
+class DataTypeListFixedSize(DataTypeList):
+
+    def getSize(self):
+        raise NotImplementedError("getSize")
+
 class DataTypeStruct(DataType):
 
     def name(self) -> str:
@@ -199,6 +209,25 @@ class RandState(object):
 
     def next(self) -> 'RandState':
         raise NotImplementedError("next")
+    
+class TypeConstraint(object):
+    pass
+
+class TypeConstraintForeach(TypeConstraint):
+
+    def getTarget(self) -> 'TypeExpr':
+        raise NotImplementedError("TypeConstraintForeach.getTarget")
+
+    def getBody(self) -> TypeConstraint:
+        raise NotImplementedError("TypeConstraintForeach.getBody")
+    
+class TypeConstraintScope(object):
+
+    def getConstraints(self):
+        raise NotImplementedError("getConstraints")
+    
+    def addConstraint(self, c):
+        raise NotImplementedError("addConstraint")
 
 class SolveFlags(IntEnum):
     pass
@@ -316,6 +345,24 @@ class Context(object):
 
     def addDataTypeInt(self, t : DataTypeInt) -> bool:
         raise NotImplementedError("addDataTypeInt")
+    
+    def findDataTypeList(self, t : DataType, create : bool=True) -> DataTypeList:
+        raise NotImplementedError("findDataTypeList")
+    
+    def mkDataTypeList(self, t : DataType, owned : bool) -> DataTypeList:
+        raise NotImplementedError("mkDataTypeList")
+    
+    def addDataTypeList(self, t : DataTypeList):
+        raise NotImplementedError("addDataTypeList")
+
+    def findDataTypeListFixedSize(self, t : DataType, sz, create : bool=True) -> DataTypeListFixedSize:
+        raise NotImplementedError("findDataTypeListFixedSize")
+    
+    def mkDataTypeListFixedSize(self, t : DataType, owned : bool, sz) -> DataTypeListFixedSize:
+        raise NotImplementedError("mkDataTypeListFixedSize")
+    
+    def addDataTypeListFixedSize(self, t : DataTypeListFixedSize):
+        raise NotImplementedError("addDataTypeListFixedSize")
 
     def findDataTypeStruct(self, name) -> DataTypeStruct:
         raise NotImplementedError("findDataTypeStruct")
@@ -338,11 +385,17 @@ class Context(object):
     def mkTypeConstraintExpr(self, e : 'TypeExpr') -> 'TypeConstraintExpr':
         raise NotImplementedError("mkTypeConstraintExpr")
 
+    def mkTypeConstraintForeach(self, target_e : 'TypeExpr', body_c) -> 'TypeConstraintForeach':
+        raise NotImplementedError("mkTypeConstraintForeach")
+
     def mkTypeConstraintIfElse(self, c : 'TypeExpr', ct : 'TypeConstraint') -> 'TypeConstraintIfElse':
         raise NotImplementedError("mkTypeConstraintIfElse")
 
     def mkTypeConstraintImplies(self, c : 'TypeExpr', b : 'TypeConstraint') -> 'TypeConstraintImplies':
         raise NotImplementedError("mkTypeConstraintImplies")
+
+    def mkTypeConstraintScope(self) -> 'TypeConstraintScope':
+        raise NotImplementedError("mkTypeConstraintScope")
 
     def mkTypeConstraintSoft(self, c : 'TypeConstraintExpr') -> 'TypeConstraintSoft':
         raise NotImplementedError("mkTypeConstraintSoft")

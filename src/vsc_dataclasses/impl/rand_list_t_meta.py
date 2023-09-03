@@ -29,9 +29,12 @@ class RandListTMeta(type):
         if item in self.type_m.keys():
             return self.type_m[item]
         else:
+            from .list_tt_meta import ListTTMeta
+
             t = type("list_t[%s]" % str(item), (ListT,), {})
             t.T = item
-            tr = type("rand_t[%s]" % str(t), (RandT,), {})
+            tr = ListTTMeta("rand_t[%s]" % str(t), (RandT,), 
+                    dict(T=item, DIM=[]))
             tr.T = t
             
             self.type_m[item] = tr

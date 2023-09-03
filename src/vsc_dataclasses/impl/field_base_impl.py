@@ -41,18 +41,28 @@ class FieldBaseImpl(object):
             self._logger.debug("FieldScalarImpl._to_expr (%s)" % self._modelinfo.name)
             mi = self._modelinfo
             self._logger.debug("is_topdown_scope: %d" % mi._is_topdown_scope)
+            offset_l = []
             if mi._is_topdown_scope:            
                 ref = ctor.ctxt().mkTypeExprFieldRef(
                     TypeExprFieldRefKind.TopDownScope,
                     -1
                 )
             else:
+                # Determine the location of the target scope by
+                # traversing the bottom-up scopes until
+                # we find the scope that the field belongs to
+                level = 0
+
+                for s in ctor.bottom_up_scopes()[::-1]:
+                    if s is mi._parent:
+                        break
+                    level +=1
+
                 ref = ctor.ctxt().mkTypeExprFieldRef(
                     TypeExprFieldRefKind.BottomUpScope,
-                    -1
+                    level
                 )
 
-            offset_l = []
             while mi._parent is not None:
                 self._logger.debug("  IDX: %d" % mi._idx)
                 offset_l.insert(0, mi._idx)

@@ -1,5 +1,5 @@
 #****************************************************************************
-#* type_constraint_scope.py
+#* type_constraint_foreach.py
 #*
 #* Copyright 2022 Matthew Ballance and Contributors
 #*
@@ -20,13 +20,15 @@
 #*
 #****************************************************************************
 
-class TypeConstraintScope(object):
+class TypeConstraintForeach(object):
 
-    def __init__(self):
-        self._constraints = []
+    def __init__(self, target_e, body_c):
+        self._target_e = target_e
+        self._body_c = body_c
 
-    def getConstraints(self):
-        return self._constraints
-    
-    def addConstraint(self, c):
-        self._constraints.append(c)
+    def getTarget(self) -> 'TypeExpr':
+        return self._target_e
+
+    def getBody(self) -> 'TypeConstraint':
+        return self._body_c
+

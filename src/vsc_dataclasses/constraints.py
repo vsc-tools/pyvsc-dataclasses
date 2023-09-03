@@ -21,6 +21,8 @@
 #import libvsc.core as core
 from .impl.ctor import Ctor
 from .impl.expr import Expr
+from .impl.field_scalar_impl import FieldScalarImpl
+from .impl.typeinfo_scalar import TypeInfoScalar
 
 #********************************************************************
 #* if/then constraints
@@ -137,6 +139,51 @@ class else_then_c(object):
 
 else_then = else_then_c()
 
+#********************************************************************
+#* Iterative (foreach, forall)
+#********************************************************************
+
+class foreach(object):
+    def __init__(self, target, idx : bool = True):
+        ctor = Ctor.inst()
+
+        if not ctor.in_constraint_scope():
+           raise Exception("Attempting to use foreach constraint outside constraint scope")
+        
+        target_e = Expr.toExpr(target)
+        ctor.pop_expr(target_e)
+
+        if ctor.is_type_mode():
+            body_c = ctor.ctxt().mkTypeConstraintScope()
+            self.stmt = ctor.ctxt().mkTypeConstraintForeach(
+                target_e,
+                body_c)
+        else:
+            true_c = ctor.ctxt().mkModelConstraintScope()
+            self.stmt = ctor.ctxt().mkModelConstraintIfElse(
+                cond_e.model,
+                true_c,
+                None)
+
+#        if in_srcinfo_mode():
+#            self.stmt.srcinfo = SourceInfo.mk()
+        ctor.push_constraint_scope(body_c)
+        ctor.push_bottom_up_scope(self)
+
+        self.index_f = FieldScalarImpl("__i_%d" % len(ctor.bottom_up_scopes()),
+                            TypeInfoScalar(False), 0)
+        pass
+
+    def __enter__(self):
+        return self.index_f
+        
+    def __exit__(self, t, v, tb):
+        ctor = Ctor.inst()
+        ctor.pop_constraint_scope()
+        ctor.pop_bottom_up_scope()
+        pass
+
+    pass
 
 def soft(e):
     ctor = Ctor.inst()

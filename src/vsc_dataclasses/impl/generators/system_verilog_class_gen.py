@@ -21,6 +21,8 @@
 #****************************************************************************
 import io
 from vsc_dataclasses.impl.pyctxt.data_type_int import DataTypeInt
+from vsc_dataclasses.impl.pyctxt.data_type_list import DataTypeList
+from vsc_dataclasses.impl.pyctxt.data_type_list_fixed_size import DataTypeListFixedSize
 from vsc_dataclasses.impl.pyctxt.data_type_struct import DataTypeStruct
 from vsc_dataclasses.impl.pyctxt.type_constraint_block import TypeConstraintBlock
 from vsc_dataclasses.impl.pyctxt.type_constraint_expr import TypeConstraintExpr
@@ -40,6 +42,7 @@ class SystemVerilogClassGen(VisitorBase):
         self._type_s = []
         self._field_name_s = []
         self._field_ctor = []
+        self._emit_type_mode = 0
         pass
 
     def generate(self, cls : DataTypeStruct):
@@ -66,6 +69,9 @@ class SystemVerilogClassGen(VisitorBase):
         pass
     
     def visitDataTypeInt(self, i: DataTypeInt):
+        if self._emit_type_mode == 0:
+            return
+
         if (i._is_signed):
             if i._width == 1:
                 self.write("bit signed")
@@ -76,6 +82,16 @@ class SystemVerilogClassGen(VisitorBase):
                 self.write("bit")
             else:
                 self.write("bit[%d:0]" % (i._width-1))
+
+    def visitDataTypeList(self, i: DataTypeList):
+        raise Exception("Variable-size arrays are not supported")
+    
+    def visitDataTypeListFixedSize(self, i: DataTypeListFixedSize):
+        # Processing is bottom-up
+        i.getElemType().accept(self)
+
+        if self._emit_type_mode == 0:
+            self.write("[%0d]" % i.getSize())
 
     def visitTypeConstraintBlock(self, i: TypeConstraintBlock):
         self.println("constraint %s {" % i.name())
@@ -131,20 +147,29 @@ class SystemVerilogClassGen(VisitorBase):
     def visitTypeFieldPhy(self, i: TypeFieldPhy):
         self._field_name_s.append(i.name())
         self.write("%srand " % self._ind)
+        self._emit_type_mode += 1
         i.getDataType().accept(self)
-        self.write(" %s;\n" % i.name())
+        self._emit_type_mode -= 1
+        self.write(" %s" % i.name())
+
+        # Emit the size dimensions
+        if isinstance(i.getDataType(), DataTypeListFixedSize):
+            i.getDataType().accept(self)
+
+        self.write(";\n")
         self._field_name_s.pop()
     
     def visitDataTypeStruct(self, i: DataTypeStruct):
         if len(self._type_s) > 0:
-            # This is a field, so just display the typename
-            self.write("%s" % self.leaf_name(i.name()))
+            if self._emit_type_mode == 0:
+                # This is a field, so just display the typename
+                self.write("%s" % self.leaf_name(i.name()))
 
-            if len(self._field_name_s) > 0:
-                def write_ctor(name):
-                   self.println("%s = new();" % name)
-                name = self._field_name_s[-1]
-                self._field_ctor.append(lambda : write_ctor(name))
+                if len(self._field_name_s) > 0:
+                    def write_ctor(name):
+                        self.println("%s = new();" % name)
+                    name = self._field_name_s[-1]
+                    self._field_ctor.append(lambda : write_ctor(name))
         else:
             # Render the type declaration
             self._type_s.append(i)

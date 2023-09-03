@@ -20,6 +20,8 @@
 #*
 #****************************************************************************
 
+from .data_type_list import DataTypeList
+from .data_type_list_fixed_size import DataTypeListFixedSize
 from .data_type_int import DataTypeInt
 from .data_type_struct import DataTypeStruct
 from .type_constraint import TypeConstraint
@@ -34,6 +36,12 @@ class VisitorBase(object):
 
     def visitDataTypeInt(self, i : DataTypeInt):
         pass
+
+    def visitDataTypeList(self, i : DataTypeList):
+        i.getElemType().accept(self)
+
+    def visitDataTypeListFixedSize(self, i : DataTypeListFixedSize):
+        self.visitDataTypeList(i)
 
     def visitDataTypeStruct(self, i : DataTypeStruct):
         for f in i.getFields():

@@ -47,7 +47,7 @@ class Expr(object):
             ev.val().set_val_i(rhs)
             return Expr(ev)
         else:
-            raise Exception("toExpr failed")
+            raise Exception("toExpr failed: rhs=%s" % str(rhs))
 
     def _bin_expr(self, op, rhs):
         ctor = Ctor.inst()

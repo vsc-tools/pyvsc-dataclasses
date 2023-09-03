@@ -35,6 +35,9 @@ class TypeExprFieldRef(ctxt_api.TypeExprFieldRef):
         self._path = []
         pass
 
+    def getRootRefKind(self):
+        return self._kind
+
     def addIdxRef(self, idx : int):
         self._path.append(TypeExprFieldRefElem(ctxt_api.TypeExprFieldRefElemKind.IdxOffset, idx))
 

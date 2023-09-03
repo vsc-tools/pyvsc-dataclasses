@@ -83,98 +83,272 @@ class RandClassDecoratorImpl(typeworks.ClsDecoratorBase):
         super().pre_decorate(T)
         
     def init_annotated_field(self, key, value, has_init, init):
+        ctor = Ctor.inst()
         randclass_ti = TypeInfoRandClass.get(self.get_typeinfo())
-        is_rand = False
             
         self.logger.debug("type(value)=%s" % str(type(value)))
 
-        if issubclass(value, RandT):
-            self.logger.debug("isrand")
-            t = value.T
-            is_rand = True
+        is_rand, libobj, ti = self._get_type(value)
+
+        attr = TypeFieldAttr.NoAttr
+
+        if has_init:
+            self.logger.debug("Field: %s init=%s" % (key, str(init)))
+            iv = ctor.ctxt().mkModelVal()
+            iv.setBits(t.W)
+            if t.S:
+                iv.set_val_i(init)
+            else:
+                iv.set_val_u(init)
         else:
-            t = value
+            iv = None
+                   
+        if is_rand:
+            attr |= TypeFieldAttr.Rand
+
+        field_type_obj = ctor.ctxt().mkTypeFieldPhy(
+            key,
+            libobj,
+            False,
+            attr,
+            iv) # TODO: initial value
+
+        field_ti = TypeInfoField(key, ti)
+        randclass_ti.addField(field_ti, field_type_obj)
+        self.set_field_initial(key, None)
+
+    def _process_scalar_field(self, t, key, is_rand, has_init, init):
+        ctor = Ctor.inst()
+        randclass_ti = TypeInfoRandClass.get(self.get_typeinfo())
+
+        self.logger.debug("   Is a scalar: %d,%d" % (t.W, t.S))
+
+        if has_init:
+            self.logger.debug("Field: %s init=%s" % (key, str(init)))
+            iv = ctor.ctxt().mkModelVal()
+            iv.setBits(t.W)
+            if t.S:
+                iv.set_val_i(init)
+            else:
+                iv.set_val_u(init)
+        else:
+            iv = None
+                
+        # Create a TypeField instance to represent the field
+        it = ctor.ctxt().findDataTypeInt(t.S, t.W)
+        if it is None:
+            it = ctor.ctxt().mkDataTypeInt(t.S, t.W)
+            ctor.ctxt().addDataTypeInt(it)
+                        
+        attr = TypeFieldAttr.NoAttr
+                   
+        if is_rand:
+            attr |= TypeFieldAttr.Rand
+
+        field_type_obj = ctor.ctxt().mkTypeFieldPhy(
+            key,
+            it,
+            False,
+            attr,
+            iv) # TODO: initial value
+
+        field_ti = TypeInfoField(key, TypeInfoScalar(t.S))
+        randclass_ti.addField(field_ti, field_type_obj)
+        self.set_field_initial(key, None)
+
+    def _process_list_field(self, t, key, is_rand, has_init, init):
+        ctor = Ctor.inst()
+        randclass_ti = TypeInfoRandClass.get(self.get_typeinfo())
+
+        inner_t = t.T
+
+        print("DIM: %s" % str(t.DIM))
+
+        # Find the inner type
+        if issubclass(inner_t, ScalarT):
+            print("Inner type is scalar")
+            t_obj = ctor.ctxt().findDataTypeInt(inner_t.S, inner_t.W)
+            if t_obj is None:
+                t_obj = ctor.ctxt().mkDataTypeInt(inner_t.S, inner_t.W)
+            ctor.ctxt().addDataTypeInt(t_obj)
+            ti = TypeInfoScalar(inner_t.S)
+        elif issubclass(inner_t, ListT):
+            print("Inner type is a list")
+            self._process_list_field(t, key, is_rand, has_init, init)
+        else:
+            print("Inner type is a class")
+
+            cls_ti_t = TypeInfo.get(inner_t, False)
+
+            if cls_ti_t is None:
+                raise Exception("Type %s is not a VSC type" % str(t))
+
+            cls_ti = TypeInfoRandClass.get(cls_ti_t)
+            t_obj = cls_ti._lib_typeobj
+            ti = cls_ti
+
+          
+
+        self.logger.debug("   Is a RandClass Type")
+
+        if has_init:
+            self.logger.debug("Field: %s init=%s" % (key, str(init)))
+            iv = ctor.ctxt().mkModelVal()
+            iv.setBits(t.W)
+            if t.S:
+                iv.set_val_i(init)
+            else:
+                iv.set_val_u(init)
+        else:
+            iv = None
+                
+        # Create a TypeField instance to represent the field
+        attr = TypeFieldAttr.NoAttr
+                   
+        if is_rand:
+            attr |= TypeFieldAttr.Rand
+
+        field_type_obj = ctor.ctxt().mkTypeFieldPhy(
+            key,
+            t_obj,
+            False,
+            attr,
+            iv) # TODO: initial value
+
+        field_ti = TypeInfoField(key, ti)
+        randclass_ti.addField(field_ti, field_type_obj)
+        self.set_field_initial(key, None)            
+    
+    def _process_class_field(self, t, key, is_rand, has_init, init):
+        ctor = Ctor.inst()
+        randclass_ti = TypeInfoRandClass.get(self.get_typeinfo())
+
+        cls_ti_t = TypeInfo.get(t, False)
+
+        if cls_ti_t is None:
+            raise Exception("Type %s is not a VSC type" % str(t))
+          
+        cls_ti = TypeInfoRandClass.get(cls_ti_t)
+
+        self.logger.debug("   Is a RandClass Type")
+
+        if has_init:
+            self.logger.debug("Field: %s init=%s" % (key, str(init)))
+            iv = ctor.ctxt().mkModelVal()
+            iv.setBits(t.W)
+            if t.S:
+                iv.set_val_i(init)
+            else:
+                iv.set_val_u(init)
+        else:
+            iv = None
+                
+        # Create a TypeField instance to represent the field
+        attr = TypeFieldAttr.NoAttr
+                   
+        if is_rand:
+            attr |= TypeFieldAttr.Rand
+
+        field_type_obj = ctor.ctxt().mkTypeFieldPhy(
+            key,
+            cls_ti._lib_typeobj,
+            False,
+            attr,
+            iv) # TODO: initial value
+
+        field_ti = TypeInfoField(key, cls_ti)
+        randclass_ti.addField(field_ti, field_type_obj)
+        self.set_field_initial(key, None)            
+
+    def _get_type(self, t, level=0):
+        # Returns: is_rand,lib_obj,type_info
+        is_rand : bool = False
+
+        if level == 0 and issubclass(t, RandT):
+            self.logger.debug("isrand")
+            t = t.T
+            is_rand = True
 
         if issubclass(t, ScalarT):
             ctor = Ctor.inst()
-            self.logger.debug("   Is a scalar: %d,%d" % (t.W, t.S))
-
-            if has_init:
-                self.logger.debug("Field: %s init=%s" % (key, str(init)))
-                iv = ctor.ctxt().mkModelVal()
-                iv.setBits(t.W)
-                if t.S:
-                    iv.set_val_i(init)
-                else:
-                    iv.set_val_u(init)
-            else:
-                iv = None
-                
-            # Create a TypeField instance to represent the field
-            it = ctor.ctxt().findDataTypeInt(t.S, t.W)
-            if it is None:
-                it = ctor.ctxt().mkDataTypeInt(t.S, t.W)
-                ctor.ctxt().addDataTypeInt(it)
-                        
-            attr = TypeFieldAttr.NoAttr
-                    
-            if is_rand:
-                attr |= TypeFieldAttr.Rand
-
-            field_type_obj = ctor.ctxt().mkTypeFieldPhy(
-                key,
-                it,
-                False,
-                attr,
-                iv) # TODO: initial value
-
-            field_ti = TypeInfoField(key, TypeInfoScalar(t.S))
-            randclass_ti.addField(field_ti, field_type_obj)
-            self.set_field_initial(key, None)
+            dt = ctor.ctxt().findDataTypeInt(t.S, t.W)
+            if dt is None:
+                dt = ctor.ctxt().mkDataTypeInt(t.S, t.W)
+                ctor.ctxt().addDataTypeInt(dt)
+            return (is_rand, dt, TypeInfoScalar(t.S))
         elif issubclass(t, ListT):
-            print("  TODO: Is a list: %s" % str(t.T))
+            print("List")
+            ctor = Ctor.inst()
+            # Construct single nested type description for
+            # descriptions of both forms
+            list_dim = []
+            is_rand, obj_t, ti_t = self._get_type(t.T)
+
+            if len(t.DIM) > 0:
+                # Fixed-size dimensions
+                print("have DIM")
+                for sz in t.DIM[::-1]:
+                    print("sz: %d" % sz)
+                    # create a fixed-size list type 
+                    # of the inner-type kind
+                    list_obj_t = ctor.ctxt().findDataTypeListFixedSize(obj_t, sz)
+                    obj_t = list_obj_t
+            else:
+                obj_t = ctor.ctxt().findDataTypeList(obj_t)
+            
+            return (is_rand, obj_t, ti_t)
         else:
+            ctor = Ctor.inst()
+            randclass_ti = TypeInfoRandClass.get(self.get_typeinfo())
+
             cls_ti_t = TypeInfo.get(t, False)
 
             if cls_ti_t is None:
                 raise Exception("Type %s is not a VSC type" % str(t))
-            
+          
             cls_ti = TypeInfoRandClass.get(cls_ti_t)
+            return (is_rand, cls_ti_t._lib_typeobj, cls_ti_t)
+        
 
+
+    def _get_list_dimensions(self, list_t, dim):
+        t = list_t.T
+
+        # Find the inner type
+        if issubclass(t, ScalarT):
             ctor = Ctor.inst()
-            self.logger.debug("   Is a RandClass Type")
-
-            if has_init:
-                self.logger.debug("Field: %s init=%s" % (key, str(init)))
-                iv = ctor.ctxt().mkModelVal()
-                iv.setBits(t.W)
-                if t.S:
-                    iv.set_val_i(init)
-                else:
-                    iv.set_val_u(init)
+            print("DIM: %s" % str(list_t.DIM))
+            print("Inner type is scalar")
+            t_obj = ctor.ctxt().findDataTypeInt(t.S, t.W)
+            if t_obj is None:
+                t_obj = ctor.ctxt().mkDataTypeInt(t.S, t.W)
+            ctor.ctxt().addDataTypeInt(t_obj)
+            ti = TypeInfoScalar(t.S)
+            if len(list_t.DIM) > 0:
+                for dim_sz in list_t.DIM:
+                    dim.append((t_obj, ti, dim_sz))
             else:
-                iv = None
-                
-            # Create a TypeField instance to represent the field
-            attr = TypeFieldAttr.NoAttr
-                    
-            if is_rand:
-                attr |= TypeFieldAttr.Rand
+                dim.append((t_obj, ti, -1))
+        elif issubclass(t, ListT):
+            print("Inner type is a list")
+#            self._process_list_field(t, key, is_rand, has_init, init)
+        else:
+            print("Inner type is a class")
 
-            field_type_obj = ctor.ctxt().mkTypeFieldPhy(
-                key,
-                cls_ti._lib_typeobj,
-                False,
-                attr,
-                iv) # TODO: initial value
+            cls_ti_t = TypeInfo.get(t, False)
 
-            field_ti = TypeInfoField(key, cls_ti)
-            randclass_ti.addField(field_ti, field_type_obj)
-            self.set_field_initial(key, None)            
-            # cls_ti._lib_typeobj
+            if cls_ti_t is None:
+                raise Exception("Type %s is not a VSC type" % str(t))
 
-#            print("cls_ti: %s" % str(cls_ti))
-#            raise Exception("Non-scalar fields are not yet supported")
+            cls_ti = TypeInfoRandClass.get(cls_ti_t)
+            t_obj = cls_ti._lib_typeobj
+            ti = cls_ti
+            if len(list_t.DIM) > 0:
+                for dim_sz in list_t.DIM:
+                    dim.append((t_obj, ti, dim_sz))
+            else:
+                dim.append((t_obj, ti, -1))
+
     
     def post_decorate(self, T, Tp):
         randclass_ti = TypeInfoRandClass.get(self.get_typeinfo())

@@ -35,9 +35,8 @@ class Ctor():
         self._expr_s = []
         self._expr_mode_s = []
         self._raw_mode_s = []
-        self._bottom_up_mi_s = []
+        self._bottom_up_scopes_s = []
         self._type_ps = "."
-        pass
     
     def ctxt(self):
         return self._ctxt
@@ -91,14 +90,17 @@ class Ctor():
     def pop_type_mode(self):
         self._typemode_s.pop()
 
-    def push_bottom_up_mi(self, mi):
-        self._bottom_up_mi_s.append(mi)
+    def push_bottom_up_scope(self, si):
+        self._bottom_up_scopes_s.append(si)
 
-    def bottom_up_mi(self):
-        return self._bottom_up_mi_s[-1]
+    def bottom_up_scopes(self):
+        return self._bottom_up_scopes_s
+
+    def bottom_up_scope(self):
+        return self._bottom_up_scopes_s[-1]
     
-    def pop_bottom_up_mi(self):
-        return self._bottom_up_mi_s.pop()
+    def pop_bottom_up_scope(self):
+        return self._bottom_up_scopes_s.pop()
         
     def push_expr(self, e):
         self._expr_s.append(e)
