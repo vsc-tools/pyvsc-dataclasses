@@ -28,7 +28,7 @@ from vsc_dataclasses.impl.pyctxt.type_expr_bin import TypeExprBin
 from vsc_dataclasses.impl.pyctxt.type_expr_field_ref import TypeExprFieldRef
 from vsc_dataclasses.impl.pyctxt.type_field_phy import TypeFieldPhy
 from .collect_struct_deps import CollectStructDeps
-from ..context import BinOp, TypeExprFieldRefKind
+from ..context import BinOp, TypeExprFieldRefKind, TypeFieldAttr
 from ..pyctxt.data_type_struct import DataTypeStruct
 from ..pyctxt.visitor_base import VisitorBase
 
@@ -88,13 +88,18 @@ class VscDataModelCppGen(VisitorBase):
         ))
 
         super().visitTypeConstraintBlock(i)
-        self.println("%s_t->addConstraint(%s_%s_c);" % (self._ctxt, self.leaf_name(t.name()), i.name()))
+        self.println("%s_t->addConstraint(%s_%s_c);" % (
+            self.leaf_name(t.name()), self.leaf_name(t.name()), i.name()))
         self._constraint_scope_s.pop()
 
     def visitTypeConstraintExpr(self, i: TypeConstraintExpr):
         self.println("%s->addConstraint(" % self._constraint_scope_s[-1])
         self.inc_indent()
+        self.println("%s->mkTypeConstraintExpr(" % self._ctxt)
+        self.inc_indent()
         i.expr().accept(self)
+        self.dec_indent()
+        self.println(")")
         self.dec_indent()
         self.println(");")
 
@@ -106,18 +111,18 @@ class VscDataModelCppGen(VisitorBase):
             BinOp.Ge : "vsc::dm::BinOp::Ge",
             BinOp.Lt : "vsc::dm::BinOp::Lt",
             BinOp.Le : "vsc::dm::BinOp::Le",
-            BinOp.Add : "vsc::Dm::BinOp::Add",
-            BinOp.Sub : "-",
-            BinOp.Div : "/",
-            BinOp.Mul : "*",
-            BinOp.Mod : "%",
-            BinOp.BinAnd : "&",
-            BinOp.BinOr  : "|",
-            BinOp.LogAnd : "&&",
-            BinOp.LogOr  : "||",
-            BinOp.Sll    : "<<",
-            BinOp.Srl    : ">>",
-            BinOp.Xor    : "^",
+            BinOp.Add : "vsc::dm::BinOp::Add",
+            BinOp.Sub : "vsc::dm::BinOp::Sub",
+            BinOp.Div : "vsc::dm::BinOp::Div",
+            BinOp.Mul : "vsc::dm::BinOp::Mul",
+            BinOp.Mod : "vsc::dm::BinOp::Mod",
+            BinOp.BinAnd : "vsc::dm::BinOp::BinAnd",
+            BinOp.BinOr  : "vsc::dm::BinOp::BinOr",
+            BinOp.LogAnd : "vsc::dm::BinOp::LogAnd",
+            BinOp.LogOr  : "vsc::dm::BinOp::LogOr",
+            BinOp.Sll    : "vsc::dm::BinOp::Sll",
+            BinOp.Srl    : "vsc::dm::BinOp::Srl",
+            BinOp.Xor    : "vsc::dm::BinOp::Xor",
             BinOp.Not    : "~"
         }
         self.println("%s->mkTypeExprBin(" % self._ctxt)
@@ -160,13 +165,30 @@ class VscDataModelCppGen(VisitorBase):
         i.getDataType().accept(self)
         self._emit_type_mode -= 1
         self.write(";\n")
-        self.println("ITypeField *%s = %s->mkTypeFieldPhy(\"%s\", %s_t, false);" % (
+        self.println("vsc::dm::ITypeField *%s = %s->mkTypeFieldPhy(\"%s\"," % (
             i.name(),
             self._ctxt,
-            i.name(),
             i.name()
         ))
-    
+        self.inc_indent()
+        self.println("%s_t," % i.name())
+        self.println("false,")
+        flags = []
+        for v in TypeFieldAttr:
+            if int(v) & int(i._attr) != 0:
+                flags.append(v)
+
+        if len(flags) == 0:
+            flags.append(TypeFieldAttr.NoAttr)
+
+        self.println("%s," % "|".join(map(lambda i: "vsc::dm::TypeFieldAttr::%s" % str(i).split(".")[-1], flags)))
+        self.println("vsc::dm::ValRef()")
+        self.dec_indent()
+        self.println(");")
+        self.println("dynamic_cast<vsc::dm::IDataTypeStruct *>(%s_t)->addField(%s);" % (
+            self.leaf_name(self._type_s[-1].name()),
+            i.name()))
+
     def visitDataTypeStruct(self, i: DataTypeStruct):
         self._type_s.append(i)
 

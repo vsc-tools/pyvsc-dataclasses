@@ -29,7 +29,7 @@ from ..extract_cpp_embedded_dsl import ExtractCppEmbeddedDSL
 
 def get_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-o","--outdir", default="vscdefs"
+    parser.add_argument("-o","--outdir", default="vscdefs",
         help="Specifies the output directory")
     parser.add_argument("-d", "--depfile",
         help="Specifies a dependency file")
@@ -47,12 +47,15 @@ def main():
 
     fragment_m = {}
     for file in args.files:
+        print("Process %s" % file)
         if deps_ts is not None:
             file_ts = os.path.getmtime(file)
             if file_ts <= deps_ts:
+                print("Skip due to deps")
                 continue
 
         fragments = ExtractCppEmbeddedDSL(file).extract()
+        print("fragments: %s" % str(fragments))
 
         for f in fragments:
             if f.name in fragment_m.keys():
@@ -63,13 +66,16 @@ def main():
         os.makedirs(args.outdir, exist_ok=True)
 
     for fn in fragment_m.keys():
-        Ctor.inst().init(Context())
+        Ctor.init(Context())
 
-        eval(fragment_m[fn].content)
+        exec(fragment_m[fn].content)
 
         header_path = os.path.join(args.outdir, "%s.h" % fn)
+        root_t = Ctor.inst().ctxt().findDataTypeStruct(fragment_m[fn].root_types[0])
+        gen = VscDataModelCppGen()
+        gen._ctxt = "m_ctxt"
         with open(header_path, "w") as fp:
-            fp.write("Hello \n")
+            fp.write(gen.generate(root_t))
 
         pass
 
@@ -77,5 +83,5 @@ def main():
         with open(args.depfile, "w") as fp:
             fp.write("\n")
 
-if __name__ == "main":
+if __name__ == "__main__":
     main()
