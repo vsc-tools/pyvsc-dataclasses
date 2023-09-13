@@ -34,8 +34,8 @@ from ..pyctxt.visitor_base import VisitorBase
 
 class VscDataModelCppGen(VisitorBase):
 
-    def __init__(self):
-        self._ind = ""
+    def __init__(self, ind=""):
+        self._ind = ind
         self._out = io.StringIO()
         self._type_s = []
         self._constraint_scope_s = []
