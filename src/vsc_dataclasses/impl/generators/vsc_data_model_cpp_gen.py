@@ -59,10 +59,10 @@ class VscDataModelCppGen(VisitorBase):
     def visitDataTypeInt(self, i: DataTypeInt):
         if self._emit_type_mode > 0:
             # We're locating the desired type
-            self.write("%s->findDataTypeInt(%d, %s)" % (
+            self.write("%s->findDataTypeInt(%s, %d)" % (
                 self._ctxt,
-                i._width,
-                "true" if i._is_signed else "false"
+                "true" if i._is_signed else "false",
+                i._width
             ))
         else:
             # We're declaring the type
