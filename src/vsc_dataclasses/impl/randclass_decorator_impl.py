@@ -299,15 +299,14 @@ class RandClassDecoratorImpl(typeworks.ClsDecoratorBase):
             return (is_rand, obj_t, ti_t)
         else:
             ctor = Ctor.inst()
-            randclass_ti = TypeInfoRandClass.get(self.get_typeinfo())
 
             cls_ti_t = TypeInfo.get(t, False)
 
             if cls_ti_t is None:
                 raise Exception("Type %s is not a VSC type" % str(t))
-          
-            cls_ti = TypeInfoRandClass.get(cls_ti_t)
-            return (is_rand, cls_ti_t._lib_typeobj, cls_ti_t)
+
+            randclass_ti = TypeInfoRandClass.get(cls_ti_t)
+            return (is_rand, randclass_ti._lib_typeobj, randclass_ti)
         
 
 
