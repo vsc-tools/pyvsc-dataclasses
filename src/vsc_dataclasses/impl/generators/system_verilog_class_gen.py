@@ -165,8 +165,9 @@ class SystemVerilogClassGen(VisitorBase):
     
     def visitDataTypeStruct(self, i: DataTypeStruct):
         if len(self._type_s) > 0:
-            if self._emit_type_mode == 0:
+            if self._emit_type_mode != 0:
                 # This is a field, so just display the typename
+                print("Class name: %s" % i.name())
                 self.write("%s" % self.leaf_name(i.name()))
 
                 if len(self._field_name_s) > 0:
