@@ -146,7 +146,7 @@ class VscDataModelCppGen(VisitorBase):
             ref_base = "vsc::dm::ITypeExprFieldRef::RootRefKind::BottomUpScope"
 
         ref_list_s = list(map(lambda i: str(i), i.getPath()))
-        self.println("%s->mkTypeExprFieldRef(%s, {%s})%s" % (
+        self.println("%s->mkTypeExprFieldRef(%s, -1, {%s})%s" % (
             self._ctxt,
             ref_base,
             ",".join(ref_list_s),

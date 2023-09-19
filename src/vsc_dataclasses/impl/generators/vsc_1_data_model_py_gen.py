@@ -102,6 +102,7 @@ class Vsc1DataModelPyGen(VisitorBase):
 
     def visitTypeConstraintExpr(self, i: TypeConstraintExpr):
         self.write(self._ind)
+        self._content = ""
         super().visitTypeConstraintExpr(i)
         self.write("%s\n" % self._content)
         self._content = ""
@@ -172,7 +173,7 @@ class Vsc1DataModelPyGen(VisitorBase):
         if len(self._type_s) > 0:
             # We're inside a type declaration, so just render 
             # the type name
-            if self._emit_type_mode == 0:
+            if self._emit_type_mode != 0:
                 self._content = "vsc.%sattr(%s())" % (
                     "rand_" if self._type_is_rand else "",
                     self.leaf_name(i.name()))
