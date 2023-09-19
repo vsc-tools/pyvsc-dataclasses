@@ -31,6 +31,7 @@ from vsc_dataclasses.impl.pyctxt.type_expr_field_ref import TypeExprFieldRef
 from vsc_dataclasses.impl.pyctxt.type_field_phy import TypeFieldPhy
 from ..context import BinOp
 from ..pyctxt.data_type_struct import DataTypeStruct
+from ..pyctxt.type_expr_val import TypeExprVal
 from ..pyctxt.visitor_base import VisitorBase
 from .collect_struct_deps import CollectStructDeps
 
@@ -143,6 +144,9 @@ class SystemVerilogClassGen(VisitorBase):
             self.write("%s" % f.name())
 
         return super().visitTypeExprFieldRef(i)
+
+    def visitTypeExprVal(self, i: TypeExprVal):
+        self.write("%d" % i._val._val)
     
     def visitTypeFieldPhy(self, i: TypeFieldPhy):
         self._field_name_s.append(i.name())

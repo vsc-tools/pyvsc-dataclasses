@@ -67,7 +67,7 @@ class DataTypeEnum(DataType):
     def isSigned(self) -> bool:
         raise NotImplementedError("isSigned")
 
-    def addEnumerator(self, name, val : 'ModelVal') -> bool:
+    def addEnumerator(self, name, val : 'ValRef') -> bool:
         raise NotImplementedError("addEnumerator")
 
     def getDomain(self) -> 'TypeExprRangelist':
@@ -145,7 +145,7 @@ class ModelField(object):
     def getField(self, idx : int) -> 'ModelField':
         raise NotImplementedError("getField")
 
-    def val(self) -> 'ModelVal':
+    def val(self) -> 'ValRef':
         raise NotImplementedError("val")
 
     def clearFlag(self, flags : 'ModelFieldFlag'):
@@ -165,25 +165,28 @@ class ModelField(object):
 
 
 
-class ModelVal(object):
+class ValRef(object):
+
+    def type(self) -> DataType:
+        raise NotImplementedError("type")
+    
+class ValRefInt(ValRef):
 
     def bits(self) -> int:
         raise NotImplementedError("bits")
+    
+    def is_signed(self) -> bool:
+        raise NotImplementedError("is_signed")
+    
+    def get_val_s(self) -> int:
+        raise NotImplementedError("get_val_s")
 
-    def setBits(self, bits : int) ->int:
-        raise NotImplementedError("setBits")
+    def get_val_u(self) -> int:
+        raise NotImplementedError("get_val_u")
+    
+    def set_val(self, v):
+        raise NotImplementedError("set_val")
 
-    def val_u(self) -> int:
-        raise NotImplementedError("val_u")
-
-    def val_i(self) -> int:
-        raise NotImplementedError("val_i")
-
-    def set_val_i(self, v : int, bits : int=-1):
-        raise NotImplementedError("set_val_i")
-
-    def set_val_u(self, v : int, bits : int=-1):
-        raise NotImplementedError("set_val_u")
 
 class ModelBuildContext(object):
 
@@ -198,7 +201,7 @@ class RandState(object):
     def randint32(self, low, high):
         raise NotImplementedError("randint32")
 
-    def randbits(self, v : ModelVal):
+    def randbits(self, v : 'ModelVal'):
         raise NotImplementedError("randbits")
 
     def setState(self, other : 'RandState'):
@@ -285,7 +288,7 @@ class TypeExprRange(TypeExpr):
 
 class TypeExprVal(TypeExpr):
 
-    def val(self) -> 'ModelVal':
+    def val(self) -> 'ValRef':
         raise NotImplementedError("val")
 
 #********************************************************************
@@ -318,7 +321,7 @@ class TypeField(object):
 
 class TypeFieldPhy(TypeField):
 
-    def getInit(self) -> 'ModelVal':
+    def getInit(self) -> 'ValRef':
         raise NotImplementedError('getInit')
 
 class TypeFieldRef(TypeField):
@@ -418,7 +421,7 @@ class Context(object):
     def mkTypeExprRangelist(self):
         raise NotImplementedError("mkTypeExprRangelist")
 
-    def mkTypeExprVal(self, val : 'ModelVal'):
+    def mkTypeExprVal(self, val : 'ValRef'):
         raise NotImplementedError("mkTypeExprVal")
 
     def mkTypeFieldPhy(self,
@@ -426,7 +429,7 @@ class Context(object):
         dtype : 'DataType',
         own_dtype : bool,
         attr,
-        init : 'ModelVal') -> 'TypeFieldPhy':
+        init : 'ValRef') -> 'TypeFieldPhy':
         raise NotImplementedError("mkTypeFieldPhy")
 
     def mkTypeFieldRef(self,
@@ -434,4 +437,7 @@ class Context(object):
         dtype : 'DataType',
         attr) -> 'TypeFieldRef':
         raise NotImplementedError("mkTypeFieldRef")
+    
+    def mkValRefInt(self, value, is_signed, width):
+        raise NotImplementedError("mkValRef")
 

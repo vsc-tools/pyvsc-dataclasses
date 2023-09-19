@@ -20,6 +20,8 @@
 #*
 #****************************************************************************
 import io
+
+from ..pyctxt.type_expr_val import TypeExprVal
 from vsc_dataclasses.impl.pyctxt.data_type_int import DataTypeInt
 from vsc_dataclasses.impl.pyctxt.data_type_struct import DataTypeStruct
 from vsc_dataclasses.impl.pyctxt.type_constraint_block import TypeConstraintBlock
@@ -157,6 +159,13 @@ class VscDataModelCppGen(VisitorBase):
 #            f = t.getField(ii)
 #            self.write("%s" % f.name())
 #        return super().visitTypeExprFieldRef(i)
+
+    def visitTypeExprVal(self, i: TypeExprVal):
+        self.println("%s->mkTypeExprVal(" % self._ctxt)
+        self.inc_indent()
+        self.println("%s->mkValRefInt(%d, true, 32)" % (self._ctxt, i._val._val))
+        self.dec_indent()
+        self.println(")%s" % self.comma())
     
     def visitTypeFieldPhy(self, i: TypeFieldPhy):
         # First, find the type

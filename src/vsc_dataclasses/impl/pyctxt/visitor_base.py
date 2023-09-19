@@ -29,6 +29,7 @@ from .type_constraint_block import TypeConstraintBlock
 from .type_constraint_expr import TypeConstraintExpr
 from .type_expr_bin import TypeExprBin
 from .type_expr_field_ref import TypeExprFieldRef
+from .type_expr_val import TypeExprVal
 from .type_field import TypeField
 from .type_field_phy import TypeFieldPhy
 
@@ -64,6 +65,9 @@ class VisitorBase(object):
         i._rhs.accept(self)
 
     def visitTypeExprFieldRef(self, i : TypeExprFieldRef):
+        pass
+
+    def visitTypeExprVal(self, i : TypeExprVal):
         pass
 
     def visitTypeField(self, i : TypeField):

@@ -1,5 +1,5 @@
 #****************************************************************************
-#* type_expr_val.py
+#* val_ref_int.py
 #*
 #* Copyright 2022 Matthew Ballance and Contributors
 #*
@@ -19,18 +19,25 @@
 #*     Author: 
 #*
 #****************************************************************************
-
-import vsc_dataclasses.impl.context as ctxt_api
 from .val_ref import ValRef
+    
+class ValRefInt(ValRef):
+    
+    def __init__(self, val, type):
+        super().__init__(val, type)
 
-class TypeExprVal(ctxt_api.TypeExprVal):
+    def bits(self) -> int:
+        return self._type.width()
+    
+    def is_signed(self) -> bool:
+        return self._type.is_signed()
+    
+    def get_val_s(self) -> int:
+        return self._val
 
-    def __init__(self, val):
-        self._val = val
-
-    def val(self) -> 'ValRef':
+    def get_val_u(self) -> int:
         return self._val
     
-    def accept(self, v):
-        v.visitTypeExprVal(self)
+    def set_val(self, v):
+        self._val = v
 

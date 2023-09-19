@@ -8,6 +8,12 @@ class DataTypeInt(ctxt_api.DataType):
         self._is_signed = is_signed
         self._width = width
 
+    def is_signed(self):
+        return self._is_signed
+
+    def width(self):
+        return self._width
+
     def mkRootField(self,
         ctxt : 'ModelBuildContext',
         name : str,

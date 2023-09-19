@@ -39,12 +39,8 @@ class Expr(object):
         elif type(rhs) == int:
             ctor = Ctor.inst()
            
-            if ctor.is_type_mode():
-                ev = Ctor.inst().ctxt().mkTypeExprVal(None)
-            else:
-                ev = Ctor.inst().ctxt().mkModelExprVal(None)
-            ev.val().setBits(64)
-            ev.val().set_val_i(rhs)
+            ev = Ctor.inst().ctxt().mkTypeExprVal(
+                Ctor.inst().ctxt().mkValRefInt(rhs, True, 64))
             return Expr(ev)
         else:
             raise Exception("toExpr failed: rhs=%s" % str(rhs))

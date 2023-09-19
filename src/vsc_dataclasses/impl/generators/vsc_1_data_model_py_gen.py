@@ -30,6 +30,7 @@ from vsc_dataclasses.impl.pyctxt.type_field_phy import TypeFieldPhy
 from .collect_struct_deps import CollectStructDeps
 from ..context import BinOp, TypeExprFieldRefKind, TypeFieldAttr
 from ..pyctxt.data_type_struct import DataTypeStruct
+from ..pyctxt.type_expr_val import TypeExprVal
 from ..pyctxt.visitor_base import VisitorBase
 
 class Vsc1DataModelPyGen(VisitorBase):
@@ -143,6 +144,9 @@ class Vsc1DataModelPyGen(VisitorBase):
             self._content += "%s" % f.name()
 
         return super().visitTypeExprFieldRef(i)
+
+    def visitTypeExprVal(self, i: TypeExprVal):
+        self.write("%d" % i._val._val)
     
     def visitTypeFieldPhy(self, i: TypeFieldPhy):
         self._type_is_rand = True

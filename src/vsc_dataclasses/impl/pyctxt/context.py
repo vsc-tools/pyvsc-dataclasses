@@ -18,6 +18,7 @@ from .type_constraint_scope import TypeConstraintScope
 from .type_expr_bin import TypeExprBin
 from .type_expr_field_ref import TypeExprFieldRef
 from .type_expr_val import TypeExprVal
+from .val_ref_int import ValRefInt
 
 
 class Context(impl.Context):
@@ -179,3 +180,8 @@ class Context(impl.Context):
         dtype : 'DataType',
         attr) -> 'TypeFieldRef':
         return TypeFieldRef(name, dtype, attr)
+    
+    def mkValRefInt(self, value, is_signed, width):
+        t = self.findDataTypeInt(is_signed, width)
+        return ValRefInt(value, t) 
+
