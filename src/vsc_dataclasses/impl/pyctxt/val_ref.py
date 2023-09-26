@@ -1,5 +1,5 @@
 #****************************************************************************
-#* type_expr_val.py
+#* val_ref.py
 #*
 #* Copyright 2022 Matthew Ballance and Contributors
 #*
@@ -20,17 +20,12 @@
 #*
 #****************************************************************************
 
-import vsc_dataclasses.impl.context as ctxt_api
-from .val_ref import ValRef
+class ValRef(object):
 
-class TypeExprVal(ctxt_api.TypeExprVal):
-
-    def __init__(self, val):
+    def __init__(self, val, type):
         self._val = val
+        self._type = type
 
-    def val(self) -> 'ValRef':
-        return self._val
-    
-    def accept(self, v):
-        v.visitTypeExprVal(self)
+    def type(self) -> 'DataType':
+        return self._type
 

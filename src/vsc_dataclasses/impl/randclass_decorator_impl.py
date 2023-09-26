@@ -94,12 +94,7 @@ class RandClassDecoratorImpl(typeworks.ClsDecoratorBase):
 
         if has_init:
             self.logger.debug("Field: %s init=%s" % (key, str(init)))
-            iv = ctor.ctxt().mkModelVal()
-            iv.setBits(t.W)
-            if t.S:
-                iv.set_val_i(init)
-            else:
-                iv.set_val_u(init)
+            iv = ctor.ctxt().mkValRefInt(init, t.S, t.W)
         else:
             iv = None
                    
@@ -125,12 +120,7 @@ class RandClassDecoratorImpl(typeworks.ClsDecoratorBase):
 
         if has_init:
             self.logger.debug("Field: %s init=%s" % (key, str(init)))
-            iv = ctor.ctxt().mkModelVal()
-            iv.setBits(t.W)
-            if t.S:
-                iv.set_val_i(init)
-            else:
-                iv.set_val_u(init)
+            iv = ctor.ctxt().mkValRefInt(init, t.S, t.W)
         else:
             iv = None
                 
@@ -193,12 +183,7 @@ class RandClassDecoratorImpl(typeworks.ClsDecoratorBase):
 
         if has_init:
             self.logger.debug("Field: %s init=%s" % (key, str(init)))
-            iv = ctor.ctxt().mkModelVal()
-            iv.setBits(t.W)
-            if t.S:
-                iv.set_val_i(init)
-            else:
-                iv.set_val_u(init)
+            iv = ctor.ctxt().mkValRefInt(init, t.S, t.W)
         else:
             iv = None
                 
@@ -234,12 +219,7 @@ class RandClassDecoratorImpl(typeworks.ClsDecoratorBase):
 
         if has_init:
             self.logger.debug("Field: %s init=%s" % (key, str(init)))
-            iv = ctor.ctxt().mkModelVal()
-            iv.setBits(t.W)
-            if t.S:
-                iv.set_val_i(init)
-            else:
-                iv.set_val_u(init)
+            iv = ctor.ctxt().mkValRefInt(init, t.S, t.W)
         else:
             iv = None
                 
@@ -299,15 +279,14 @@ class RandClassDecoratorImpl(typeworks.ClsDecoratorBase):
             return (is_rand, obj_t, ti_t)
         else:
             ctor = Ctor.inst()
-            randclass_ti = TypeInfoRandClass.get(self.get_typeinfo())
 
             cls_ti_t = TypeInfo.get(t, False)
 
             if cls_ti_t is None:
                 raise Exception("Type %s is not a VSC type" % str(t))
-          
-            cls_ti = TypeInfoRandClass.get(cls_ti_t)
-            return (is_rand, cls_ti_t._lib_typeobj, cls_ti_t)
+
+            randclass_ti = TypeInfoRandClass.get(cls_ti_t)
+            return (is_rand, randclass_ti._lib_typeobj, randclass_ti)
         
 
 

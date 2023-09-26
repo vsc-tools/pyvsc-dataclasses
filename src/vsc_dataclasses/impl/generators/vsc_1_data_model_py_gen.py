@@ -1,5 +1,5 @@
 #****************************************************************************
-#* system_verilog_class_gen.py
+#* vsc_1_data_model_py_gen.py
 #*
 #* Copyright 2022 Matthew Ballance and Contributors
 #*
@@ -21,21 +21,19 @@
 #****************************************************************************
 import io
 from vsc_dataclasses.impl.pyctxt.data_type_int import DataTypeInt
-from vsc_dataclasses.impl.pyctxt.data_type_list import DataTypeList
-from vsc_dataclasses.impl.pyctxt.data_type_list_fixed_size import DataTypeListFixedSize
 from vsc_dataclasses.impl.pyctxt.data_type_struct import DataTypeStruct
 from vsc_dataclasses.impl.pyctxt.type_constraint_block import TypeConstraintBlock
 from vsc_dataclasses.impl.pyctxt.type_constraint_expr import TypeConstraintExpr
 from vsc_dataclasses.impl.pyctxt.type_expr_bin import TypeExprBin
 from vsc_dataclasses.impl.pyctxt.type_expr_field_ref import TypeExprFieldRef
 from vsc_dataclasses.impl.pyctxt.type_field_phy import TypeFieldPhy
-from ..context import BinOp
+from .collect_struct_deps import CollectStructDeps
+from ..context import BinOp, TypeExprFieldRefKind, TypeFieldAttr
 from ..pyctxt.data_type_struct import DataTypeStruct
 from ..pyctxt.type_expr_val import TypeExprVal
 from ..pyctxt.visitor_base import VisitorBase
-from .collect_struct_deps import CollectStructDeps
 
-class SystemVerilogClassGen(VisitorBase):
+class Vsc1DataModelPyGen(VisitorBase):
 
     def __init__(self):
         self._ind = ""
@@ -44,7 +42,10 @@ class SystemVerilogClassGen(VisitorBase):
         self._field_name_s = []
         self._field_ctor = []
         self._emit_type_mode = 0
-        pass
+        self._type_is_rand = False
+#        self._type_ctor = ""
+        self._content = ""
+
 
     def generate(self, cls : DataTypeStruct):
         self._out = io.StringIO()
@@ -61,50 +62,50 @@ class SystemVerilogClassGen(VisitorBase):
         return self._out.getvalue()
     
     def _build_ctor(self):
-        self.println("function new();")
+        self.println("def __init__(self):")
         self.inc_indent()
         for c in self._field_ctor:
-            c()
+            self.println(c)
+        if len(self._field_ctor) == 0:
+            self.println("pass")
         self.dec_indent()
-        self.println("endfunction")
-        pass
     
     def visitDataTypeInt(self, i: DataTypeInt):
         if self._emit_type_mode == 0:
             return
 
-        if (i._is_signed):
-            if i._width == 1:
-                self.write("bit signed")
-            else:
-                self.write("bit[%d:0] signed" % (i._width-1))
-        else:
-            if i._width == 1:
-                self.write("bit")
-            else:
-                self.write("bit[%d:0]" % (i._width-1))
+        self._content += "vsc.%s%s(%d)" % (
+            "rand_" if self._type_is_rand else "",
+            "int_t" if i._is_signed else "bit_t",
+            i._width)
 
-    def visitDataTypeList(self, i: DataTypeList):
+    def visitDataTypeList(self, i: 'DataTypeList'):
         raise Exception("Variable-size arrays are not supported")
     
-    def visitDataTypeListFixedSize(self, i: DataTypeListFixedSize):
+    def visitDataTypeListFixedSize(self, i: 'DataTypeListFixedSize'):
         # Processing is bottom-up
-        i.getElemType().accept(self)
 
-        if self._emit_type_mode == 0:
-            self.write("[%0d]" % i.getSize())
+        self._content += "vsc.%slist_t(" % "rand_" if self._type_is_rand else ""
+        i.getElemType().accept(self)
+        self._content += ", %d)" % i.getSize()
+
+#        if self._emit_type_mode == 0:
+#            self.write("[%0d]" % i.getSize())
 
     def visitTypeConstraintBlock(self, i: TypeConstraintBlock):
-        self.println("constraint %s {" % i.name())
+        self.println("@vsc.constraint")
+        self.println("def %s(self):" % i.name())
         self.inc_indent()
         super().visitTypeConstraintBlock(i)
         self.dec_indent()
-        self.println("}")
+        self.println()
 
     def visitTypeConstraintExpr(self, i: TypeConstraintExpr):
         self.write(self._ind)
+        self._content = ""
         super().visitTypeConstraintExpr(i)
-        self.write(";\n")
+        self.write("%s\n" % self._content)
+        self._content = ""
 
     def visitTypeExprBin(self, i: TypeExprBin):
         op_m = {
@@ -130,18 +131,18 @@ class SystemVerilogClassGen(VisitorBase):
         }
 
         i._lhs.accept(self)
-        self.write(" %s " % op_m[i._op])
+        self._content += " %s " % op_m[i._op]
         i._rhs.accept(self)
 
     def visitTypeExprFieldRef(self, i: TypeExprFieldRef):
         # TODO: assume in type context
         t = self._type_s[-1]
 
-        for iii,ii in enumerate(i.getPath()):
-            if iii > 0:
-                self.write(".")
+        self._content += "self"
+        for ii in i.getPath():
+            self._content += "."
             f = t.getField(ii)
-            self.write("%s" % f.name())
+            self._content += "%s" % f.name()
 
         return super().visitTypeExprFieldRef(i)
 
@@ -149,36 +150,39 @@ class SystemVerilogClassGen(VisitorBase):
         self.write("%d" % i._val._val)
     
     def visitTypeFieldPhy(self, i: TypeFieldPhy):
+        self._type_is_rand = True
+        self._content = ""
+
+
         self._field_name_s.append(i.name())
-        self.write("%srand " % self._ind)
         self._emit_type_mode += 1
         i.getDataType().accept(self)
         self._emit_type_mode -= 1
-        self.write(" %s" % i.name())
+        
+        self._field_ctor.append("self.%s = %s" % (
+            i.name(),
+            self._content))
 
         # Emit the size dimensions
-        if isinstance(i.getDataType(), DataTypeListFixedSize):
-            i.getDataType().accept(self)
+#        if isinstance(i.getDataType(), DataTypeListFixedSize):
+#            i.getDataType().accept(self)
 
-        self.write(";\n")
         self._field_name_s.pop()
     
     def visitDataTypeStruct(self, i: DataTypeStruct):
         if len(self._type_s) > 0:
+            # We're inside a type declaration, so just render 
+            # the type name
             if self._emit_type_mode != 0:
-                # This is a field, so just display the typename
-                self.write("%s" % self.leaf_name(i.name()))
-
-                if len(self._field_name_s) > 0:
-                    def write_ctor(name):
-                        self.println("%s = new();" % name)
-                    name = self._field_name_s[-1]
-                    self._field_ctor.append(lambda : write_ctor(name))
+                self._content = "vsc.%sattr(%s())" % (
+                    "rand_" if self._type_is_rand else "",
+                    self.leaf_name(i.name()))
         else:
             # Render the type declaration
             self._type_s.append(i)
 
-            self.println("class %s;" % self.leaf_name(i.name()))
+            self.println("@vsc.randobj")
+            self.println("class %s(object):" % self.leaf_name(i.name()))
             self.inc_indent()
             super().visitDataTypeStruct(i)
 
@@ -188,7 +192,6 @@ class SystemVerilogClassGen(VisitorBase):
                 self.println()
 
             self.dec_indent()
-            self.println("endclass")
             self._type_s.pop()
     
     def println(self, data=""):
@@ -211,4 +214,3 @@ class SystemVerilogClassGen(VisitorBase):
     def leaf_name(self, name):
         elems = name.split('.')
         return elems[-1]
-

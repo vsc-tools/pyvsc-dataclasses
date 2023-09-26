@@ -20,6 +20,8 @@
 #*
 #****************************************************************************
 import io
+
+from ..pyctxt.type_expr_val import TypeExprVal
 from vsc_dataclasses.impl.pyctxt.data_type_int import DataTypeInt
 from vsc_dataclasses.impl.pyctxt.data_type_struct import DataTypeStruct
 from vsc_dataclasses.impl.pyctxt.type_constraint_block import TypeConstraintBlock
@@ -34,8 +36,8 @@ from ..pyctxt.visitor_base import VisitorBase
 
 class VscDataModelCppGen(VisitorBase):
 
-    def __init__(self):
-        self._ind = ""
+    def __init__(self, ind=""):
+        self._ind = ind
         self._out = io.StringIO()
         self._type_s = []
         self._constraint_scope_s = []
@@ -59,10 +61,10 @@ class VscDataModelCppGen(VisitorBase):
     def visitDataTypeInt(self, i: DataTypeInt):
         if self._emit_type_mode > 0:
             # We're locating the desired type
-            self.write("%s->findDataTypeInt(%d, %s)" % (
+            self.write("%s->findDataTypeInt(%s, %d)" % (
                 self._ctxt,
-                i._width,
-                "true" if i._is_signed else "false"
+                "true" if i._is_signed else "false",
+                i._width
             ))
         else:
             # We're declaring the type
@@ -144,7 +146,7 @@ class VscDataModelCppGen(VisitorBase):
             ref_base = "vsc::dm::ITypeExprFieldRef::RootRefKind::BottomUpScope"
 
         ref_list_s = list(map(lambda i: str(i), i.getPath()))
-        self.println("%s->mkTypeExprFieldRef(%s, {%s})%s" % (
+        self.println("%s->mkTypeExprFieldRef(%s, -1, {%s})%s" % (
             self._ctxt,
             ref_base,
             ",".join(ref_list_s),
@@ -157,6 +159,13 @@ class VscDataModelCppGen(VisitorBase):
 #            f = t.getField(ii)
 #            self.write("%s" % f.name())
 #        return super().visitTypeExprFieldRef(i)
+
+    def visitTypeExprVal(self, i: TypeExprVal):
+        self.println("%s->mkTypeExprVal(" % self._ctxt)
+        self.inc_indent()
+        self.println("%s->mkValRefInt(%d, true, 32)" % (self._ctxt, i._val._val))
+        self.dec_indent()
+        self.println(")%s" % self.comma())
     
     def visitTypeFieldPhy(self, i: TypeFieldPhy):
         # First, find the type
