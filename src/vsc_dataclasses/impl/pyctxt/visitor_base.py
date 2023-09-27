@@ -32,6 +32,7 @@ from .type_expr_field_ref import TypeExprFieldRef
 from .type_expr_val import TypeExprVal
 from .type_field import TypeField
 from .type_field_phy import TypeFieldPhy
+from .type_field_ref import TypeFieldRef
 
 class VisitorBase(object):
 
@@ -74,5 +75,8 @@ class VisitorBase(object):
         i.getDataType().accept(self)
 
     def visitTypeFieldPhy(self, i : TypeFieldPhy):
+        self.visitTypeField(i)
+
+    def visitTypeFieldRef(self, i : TypeFieldRef):
         self.visitTypeField(i)
 

@@ -28,3 +28,6 @@ class TypeFieldRef(ctxt_api.TypeFieldRef, TypeField):
     def __init__(self, name, dtype, attr):
         TypeField.__init__(self, name, dtype, attr)
 
+    def accept(self, v):
+        v.visitTypeFieldRef(self)
+
