@@ -42,6 +42,7 @@ class VscDataModelCppGen(VisitorBase):
         self._type_s = []
         self._constraint_scope_s = []
         self._ctxt = "ctxt"
+        # When >0, we're referencing the type not defining it
         self._emit_type_mode = 0
         self._comma = []
 
@@ -238,9 +239,22 @@ class VscDataModelCppGen(VisitorBase):
         else:
             self._ind = ""
 
+    def push_comma(self, c=True):
+        self._comma.append(c)
+
     def comma(self):
         return "," if len(self._comma) > 0 and self._comma[-1] else ""
+    
+    def pop_comma(self):
+        self._comma.pop()
 
     def leaf_name(self, name):
         elems = name.split('.')
         return elems[-1]
+    
+    def localname(self, name):
+        lidx = name.find("<locals>.")
+        if lidx != -1:
+            return name[lidx+9:]
+        else:
+            return name
