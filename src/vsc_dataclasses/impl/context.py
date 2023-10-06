@@ -256,22 +256,25 @@ class TypeExprFieldRefKind(IntEnum):
 
 class TypeExprFieldRef(TypeExpr):
 
-    def addIdxRef(self, idx : int):
-        raise NotImplementedError("addIdxRef")
-
-    def addActiveScopeRef(self, off : int):
-        raise NotImplementedError("addActiveScopeRef")
-
-    def addRootRef(self):
-        raise NotImplementedError("addRootRef")
-
-    def addRef(self, ref : 'TypeExprFieldRefElem'):
-        raise NotImplementedError("addRef")
-
-    def at(self, idx : int) -> 'TypeExprFieldRefElem':
+    def getRootExpr(self):
+        raise NotImplementedError("getRootExpr")
+    
+    def getRootRefKind(self):
+        raise NotImplementedError("getRootRefKind")
+    
+    def getRootRefOffset(self):
+        raise NotImplementedError("getRootRefOffset")
+    
+    def addPathElem(self, idx):
+        raise NotImplementedError("addPathElem")
+    
+    def size(self):
+        raise NotImplementedError("size")
+    
+    def at(self):
         raise NotImplementedError("at")
-
-    def getPath(self) -> List['TypeExprFieldRefElem']:
+    
+    def getPath(self):
         raise NotImplementedError("getPath")
 
 
@@ -409,7 +412,7 @@ class Context(object):
     def mkTypeExprBin(self, lhs : 'TypeExpr', op : BinOp, rhs : 'TypeExpr') -> 'TypeExprBin':
         raise NotImplementedError("mkTypeExprBin")
 
-    def mkTypeExprFieldRef(self) -> 'TypeExprFieldRef':
+    def mkTypeExprFieldRef(self, kind, offset, path) -> 'TypeExprFieldRef':
         raise NotImplementedError("mkTypeExprFieldRef")
 
     def mkTypeExprRange(self,

@@ -156,6 +156,8 @@ class TypeInfoRandClass(TypeInfoVsc):
         ctor = Ctor.inst()
 
         # TODO: need to push a scope with the lib_typeobj for this field
+        if self.lib_typeobj is None:
+            raise Exception("Type-info for field %s is null" % name)
         ctor.push_scope(None, self.lib_typeobj.getField(idx), True)
         ctor.push_type_mode()
         field = self.info.Tp()

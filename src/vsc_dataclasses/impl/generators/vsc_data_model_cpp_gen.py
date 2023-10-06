@@ -147,9 +147,10 @@ class VscDataModelCppGen(VisitorBase):
             ref_base = "vsc::dm::ITypeExprFieldRef::RootRefKind::BottomUpScope"
 
         ref_list_s = list(map(lambda i: str(i), i.getPath()))
-        self.println("%s->mkTypeExprFieldRef(%s, -1, {%s})%s" % (
+        self.println("%s->mkTypeExprFieldRef(%s, %d, {%s})%s" % (
             self._ctxt,
             ref_base,
+            i.getRootRefOffset(),
             ",".join(ref_list_s),
             self.comma()))
 
@@ -232,6 +233,9 @@ class VscDataModelCppGen(VisitorBase):
 
     def inc_indent(self):
         self._ind += "    "
+
+    def ind(self):
+        return self._ind
 
     def dec_indent(self):
         if len(self._ind) > 4:

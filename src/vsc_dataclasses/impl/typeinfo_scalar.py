@@ -21,9 +21,15 @@ from .typeinfo_vsc import TypeInfoVsc
 
 class TypeInfoScalar(TypeInfoVsc):
 
-    def __init__(self, is_signed):
+    def __init__(self, dt):
         super().__init__(None, None)
-        self.is_signed = is_signed
+        if dt is None:
+            raise Exception("no data-type object")
+        self._lib_typeobj = dt
+
+    @property
+    def is_signed(self):
+        return self._lib_typeobj.is_signed()
 
     def createInst(
             self,

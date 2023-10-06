@@ -42,35 +42,33 @@ class FieldBaseImpl(object):
             mi = self._modelinfo
             self._logger.debug("is_topdown_scope: %d" % mi._is_topdown_scope)
             offset_l = []
-            if mi._is_topdown_scope:            
-                ref = ctor.ctxt().mkTypeExprFieldRef(
-                    TypeExprFieldRefKind.TopDownScope,
-                    -1
-                )
-            else:
-                # Determine the location of the target scope by
-                # traversing the bottom-up scopes until
-                # we find the scope that the field belongs to
-                level = 0
 
-                for s in ctor.bottom_up_scopes()[::-1]:
-                    if s is mi._parent:
-                        break
-                    level +=1
-
-                ref = ctor.ctxt().mkTypeExprFieldRef(
-                    TypeExprFieldRefKind.BottomUpScope,
-                    level
-                )
-
+            # Walk up the stack until we find the root
+            last_parent = None
             while mi._parent is not None:
+                last_parent = mi._parent
                 self._logger.debug("  IDX: %d" % mi._idx)
                 offset_l.insert(0, mi._idx)
                 self._logger.debug("MI: %s" % str(mi))
                 mi = mi._parent
+
+            print("Last Parent: %s" % str(last_parent))
+
+            bottom_up_offset = -1
+            for ii,s in enumerate(ctor.bottom_up_scopes()[::-1]):
+                if s is last_parent:
+                    bottom_up_offset = ii
+                    break
             
-            for off in offset_l:
-                ref.addPathElem(off)
+            print("bottom_up_offset: %d" % bottom_up_offset)
+            offset = 0
+            kind = TypeExprFieldRefKind.TopDownScope
+
+            if bottom_up_offset != -1:
+                offset = bottom_up_offset
+                kind = TypeExprFieldRefKind.BottomUpScope
+
+            ref = ctor.ctxt().mkTypeExprFieldRef(kind, offset, offset_l)
         else:        
             self._logger.debug("FieldScalarImpl._to_expr (%s)" % self.model().name())
             ref = ctor.ctxt().mkModelExprFieldRef(self.model())
