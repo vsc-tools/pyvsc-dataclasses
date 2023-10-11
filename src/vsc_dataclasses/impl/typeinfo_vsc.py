@@ -52,3 +52,6 @@ class TypeInfoVsc(object):
     def info(self):
         return self._info
     
+    def init2Val(self, init):
+        raise NotImplementedError("init2Val not implemented for %s" % str(type(self)))
+    

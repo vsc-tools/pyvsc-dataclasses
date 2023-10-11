@@ -20,12 +20,23 @@
 #*
 #****************************************************************************
 
-class TypeExprBin(object):
+import vsc_dataclasses.impl.context as ctxt_api
+
+class TypeExprBin(ctxt_api.TypeExprBin):
 
     def __init__(self, lhs, op, rhs):
         self._lhs = lhs
         self._op = op
         self._rhs = rhs
+
+    def lhs(self):
+        return self._lhs
+    
+    def op(self):
+        return self._op
+
+    def rhs(self):
+        return self._rhs
 
     def accept(self, v):
         v.visitTypeExprBin(self)

@@ -100,7 +100,7 @@ class RandClassDecoratorImpl(typeworks.ClsDecoratorBase):
 
         if has_init:
             self.logger.debug("Field: %s init=%s" % (key, str(init)))
-            iv = ctor.ctxt().mkValRefInt(init, t.S, t.W)
+            iv = ti.init2Val(init)
         else:
             iv = None
                    

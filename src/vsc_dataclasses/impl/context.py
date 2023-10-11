@@ -254,6 +254,17 @@ class TypeExprFieldRefKind(IntEnum):
 #    kind : TypeExprFieldRefElemKind
 #    idx : int
 
+class TypeExprBin(TypeExpr):
+
+    def lhs(self):
+        raise NotImplementedError("lhs")
+    
+    def op(self):
+        raise NotImplementedError("op")
+
+    def rhs(self):
+        raise NotImplementedError("rhs")
+
 class TypeExprFieldRef(TypeExpr):
 
     def getRootExpr(self):

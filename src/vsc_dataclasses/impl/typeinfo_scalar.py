@@ -45,3 +45,9 @@ class TypeInfoScalar(TypeInfoVsc):
 
         modelinfo_p.addSubfield(field._modelinfo)
         return field
+    
+    def init2Val(self, init):
+        return Ctor.inst().ctxt().mkValRefInt(
+            init, 
+            self._lib_typeobj.is_signed(), 
+            self._lib_typeobj.width())
