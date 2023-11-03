@@ -18,6 +18,7 @@
 # @author: mballance
 #****************************************************************************
 
+import logging
 import typeworks
 from .composite_val_closure import CompositeValClosure
 from .ctor import Ctor
@@ -26,6 +27,10 @@ from .rand_state import RandState
 from .field_scalar_impl import FieldScalarImpl
 from .modelinfo import ModelInfo
 from .typeinfo_randclass import TypeInfoRandClass
+from .context import TypeExprFieldRefKind
+
+from .ctor import Ctor
+from .expr import Expr
 
 
 class RandClassImpl(object):
@@ -33,6 +38,7 @@ class RandClassImpl(object):
 
     @staticmethod
     def init(self, *args, **kwargs):
+        self._logger = logging.getLogger(type(self).__name__)
         randclass_ti = TypeInfoRandClass.get(typeworks.TypeInfo.get(type(self)))
         randclass_ti.init(self, args, kwargs)
         
@@ -144,6 +150,48 @@ class RandClassImpl(object):
 #        print("__create: %d" % is_rand)
         return field
 
+    @staticmethod 
+    def _to_expr(self):
+        ctor = Ctor.inst()
+
+        if ctor.is_type_mode():
+            self._logger.debug("FieldScalarImpl._to_expr (%s)" % self._modelinfo.name)
+            mi = self._modelinfo
+            self._logger.debug("is_topdown_scope: %d" % mi._is_topdown_scope)
+            offset_l = []
+
+            # Walk up the stack until we find the root
+            last_parent = None
+            while mi._parent is not None:
+                last_parent = mi._parent
+                self._logger.debug("  IDX: %d" % mi._idx)
+                offset_l.insert(0, mi._idx)
+                self._logger.debug("MI: %s" % str(mi))
+                mi = mi._parent
+
+            print("Last Parent: %s" % str(last_parent))
+
+            bottom_up_offset = -1
+            for ii,s in enumerate(ctor.bottom_up_scopes()[::-1]):
+                if s is last_parent:
+                    bottom_up_offset = ii
+                    break
+            
+            print("bottom_up_offset: %d" % bottom_up_offset)
+            offset = 0
+            kind = TypeExprFieldRefKind.TopDownScope
+
+            if bottom_up_offset != -1:
+                offset = bottom_up_offset
+                kind = TypeExprFieldRefKind.BottomUpScope
+
+            ref = ctor.ctxt().mkTypeExprFieldRef(kind, offset, offset_l)
+        else:        
+            self._logger.debug("FieldScalarImpl._to_expr (%s)" % self.model().name())
+            ref = ctor.ctxt().mkModelExprFieldRef(self.model())
+        
+        return Expr(ref)
+
     @classmethod
     def addMethods(cls, T):
         T.__init__ = cls.init
@@ -151,6 +199,7 @@ class RandClassImpl(object):
         T.randomize_with = cls.randomize_with
         T.__setattr__ = cls.__setattr__
         T.__getattribute__ = cls.__getattribute__
+        T._to_expr = cls._to_expr
 #        T.get_val = cls.get_val
 
         
