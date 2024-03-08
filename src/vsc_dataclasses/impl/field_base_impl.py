@@ -52,7 +52,7 @@ class FieldBaseImpl(object):
                 self._logger.debug("MI: %s" % str(mi))
                 mi = mi._parent
 
-            print("Last Parent: %s" % str(last_parent))
+            self._logger.debug("Last Parent: %s" % str(last_parent))
 
             bottom_up_offset = -1
             for ii,s in enumerate(ctor.bottom_up_scopes()[::-1]):
@@ -60,7 +60,7 @@ class FieldBaseImpl(object):
                     bottom_up_offset = ii
                     break
             
-            print("bottom_up_offset: %d" % bottom_up_offset)
+            self._logger.debug("bottom_up_offset: %d" % bottom_up_offset)
             offset = 0
             kind = TypeExprFieldRefKind.TopDownScope
 

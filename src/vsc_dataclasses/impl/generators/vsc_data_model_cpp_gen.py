@@ -50,7 +50,10 @@ class VscDataModelCppGen(VisitorBase):
         self._out = io.StringIO()
         cls_l = CollectStructDeps(None).collect(cls)
 
+        print("cls: %s" % cls.name())
+
         for i,cls_t in enumerate(cls_l):
+            print("    Dep: %s" % cls_t.name())
 #            self._field_ctor.clear()
 
             if i > 0:
@@ -141,16 +144,19 @@ class VscDataModelCppGen(VisitorBase):
         self.println(")%s" % self.comma())
 
     def visitTypeExprFieldRef(self, i: TypeExprFieldRef):
-        if i.getRootRefKind() == TypeExprFieldRefKind.TopDownScope:
-            ref_base = "vsc::dm::ITypeExprFieldRef::RootRefKind::TopDownScope"
-        else:
-            ref_base = "vsc::dm::ITypeExprFieldRef::RootRefKind::BottomUpScope"
-
         ref_list_s = list(map(lambda i: str(i), i.getPath()))
-        self.println("%s->mkTypeExprFieldRef(%s, %d, {%s})%s" % (
+        if i.getRootRefKind() == TypeExprFieldRefKind.TopDownScope:
+            ref_base = "%s->mkTypeExprRefTopDown()" % self._ctxt
+        else:
+            ref_base = "%s->mkTypeExprRefBottomUp(%d, %d)" % (
+                self._ctxt,
+                i.getRootRefOffset(),
+                ref_list_s[0])
+            ref_list_s = ref_list_s[1:]
+
+        self.println("%s->mkTypeExprRefPath(%s, true, {%s})%s" % (
             self._ctxt,
             ref_base,
-            i.getRootRefOffset(),
             ",".join(ref_list_s),
             self.comma()))
 

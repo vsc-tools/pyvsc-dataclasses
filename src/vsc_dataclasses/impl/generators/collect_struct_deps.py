@@ -55,6 +55,7 @@ class CollectStructDeps(VisitorBase):
         self._in_field_s = []
 
     def _sort_deps(self):
+        print("dep_m: %s" % str(self._dep_m))
         result = list(toposort.toposort(self._dep_m))
 
         ret = []
@@ -66,18 +67,19 @@ class CollectStructDeps(VisitorBase):
 
     def visitDataTypeStruct(self, i: DataTypeStruct):
         is_new = False
-        self.push_scope(i)
         if self.in_field():
             is_new = self.addRef(i)
         else:
             is_new = self.addType(i)
 
+        self.push_scope(i)
         for f in i.getFields():
             f.accept(self)
 
         self.pop_scope()
 
     def visitTypeField(self, i: TypeField):
+        print("visitTypeField %s" % i.name())
         self.push_in_field(True)
         i.getDataType().accept(self)
         self.pop_in_field()
@@ -95,22 +97,28 @@ class CollectStructDeps(VisitorBase):
     
     def addRef(self, i):
         is_new = False
+        print("addRef: %s (from %s)" % (
+            i.name(),
+            self._scope_s[-1].name()))
         if i.name() not in self._entry_m.keys():
             is_new = self.addType(i)
 
         dep_id = self._entry_m[self._scope_s[-1].name()]
         i_id = self._entry_m[i.name()]
+        print("    dep_id=%d i_id=%d" % (dep_id, i_id))
         if i_id not in self._dep_m[dep_id]:
             self._dep_m[dep_id].append(i_id)
         return is_new
 
     def push_scope(self, s):
+        print("push_scope: %s" % s.name())
         self._scope_s.append(s)
 
     def scope(self):
         return self._scope_s[-1] if len(self._scope_s) > 0 else None
     
     def pop_scope(self):
+        print("pop_scope: %s" % self._scope_s[-1].name())
         self._scope_s.pop()
 
     def push_in_field(self, i):
