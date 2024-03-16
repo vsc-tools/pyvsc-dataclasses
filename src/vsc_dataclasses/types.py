@@ -24,12 +24,16 @@ from .impl.enum_t_meta import EnumTMeta
 from .impl.int_t_meta import IntTMeta
 from .impl.list_t import ListT
 from .impl.list_t_meta import ListTMeta
+from .impl.param_t import ParamT
+from .impl.param_t_meta import ParamTMeta
 from .impl.rand_list_t import RandListT
 from .impl.rand_list_t_meta import RandListTMeta
 from .impl.rand_t import RandT
 from .impl.rand_t_meta import RandTMeta
 from .impl.scalar_t import ScalarT
 
+class param(ParamT, metaclass=ParamTMeta):
+    pass
 
 class rand(RandT, metaclass=RandTMeta):
     # 'rand' must wrap any field to set 'rand' flag
