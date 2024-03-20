@@ -29,7 +29,7 @@ class BitTMeta(type):
         if item in self.type_m.keys():
             return self.type_m[item]
         else:
-            t = type("bit_t[%d]" % item, (ScalarT,), {})
+            t = type("bit_t[%s]" % str(item), (ScalarT,), {})
             t.W = item
             t.S = False
             return t

@@ -1,7 +1,7 @@
 #****************************************************************************
-#* type_expr_bin.py
+#* param_t.py
 #*
-#* Copyright 2022 Matthew Ballance and Contributors
+#* Copyright 2023 Matthew Ballance and Contributors
 #*
 #* Licensed under the Apache License, Version 2.0 (the "License"); you may 
 #* not use this file except in compliance with the License.  
@@ -20,24 +20,8 @@
 #*
 #****************************************************************************
 
-import vsc_dataclasses.impl.context as ctxt_api
+class ParamT(object):
 
-class TypeExprBin(ctxt_api.TypeExprBin):
-
-    def __init__(self, lhs, op, rhs):
-        self._lhs = lhs
-        self._op = op
-        self._rhs = rhs
-
-    def lhs(self):
-        return self._lhs
-    
-    def op(self):
-        return self._op
-
-    def rhs(self):
-        return self._rhs
-
-    def accept(self, v):
-        v.visitTypeExprBin(self)
+    def __init__(self):
+        pass
 

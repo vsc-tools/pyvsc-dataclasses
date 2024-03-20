@@ -36,5 +36,7 @@ class TypeInfoField(object):
         name,
         idx):
         self.logger.debug("TypeInfoField.createInst: %s" % name)
+        if self.typeinfo is None:
+            raise Exception("Null TypeInfo for %s" % name)
         return self.typeinfo.createInst(modelinfo_p, name, idx)
 

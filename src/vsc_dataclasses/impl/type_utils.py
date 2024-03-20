@@ -1,5 +1,5 @@
 #****************************************************************************
-#* type_expr_bin.py
+#* type_utils.py
 #*
 #* Copyright 2022 Matthew Ballance and Contributors
 #*
@@ -19,25 +19,32 @@
 #*     Author: 
 #*
 #****************************************************************************
+from typeworks.impl.typeinfo import TypeInfo as TwTypeInfo
+from .ctor import Ctor
+from .list_t import ListT
+from .scalar_t import ScalarT
+from .typeinfo_randclass import TypeInfoRandClass
+from .typeinfo_scalar import TypeInfoScalar
 
-import vsc_dataclasses.impl.context as ctxt_api
 
-class TypeExprBin(ctxt_api.TypeExprBin):
+class TypeUtils(object):
 
-    def __init__(self, lhs, op, rhs):
-        self._lhs = lhs
-        self._op = op
-        self._rhs = rhs
+    def __init__(self):
+        pass
 
-    def lhs(self):
-        return self._lhs
-    
-    def op(self):
-        return self._op
+    def val2TypeInfo(self, value):
+        ctor = Ctor.inst()
 
-    def rhs(self):
-        return self._rhs
+        if issubclass(value, ScalarT):
+            dt = ctor.ctxt().findDataTypeInt(value.S, value.W)
+            return TypeInfoScalar(dt)
+        elif issubclass(value, ListT):
+            pass
+        else:
+            cls_ti_t = TwTypeInfo.get(value, False)
 
-    def accept(self, v):
-        v.visitTypeExprBin(self)
+            if cls_ti_t is None:
+                raise Exception("Type %s is not a VSC type" % str(value))
+            
+            return TypeInfoRandClass.get(cls_ti_t)
 

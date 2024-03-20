@@ -29,32 +29,29 @@ class TypeExprFieldRefElem(object):
 
 class TypeExprFieldRef(ctxt_api.TypeExprFieldRef):
 
-    def __init__(self, kind, offset):
+    def __init__(self, kind, offset, path):
         self._kind = kind
         self._offset = offset
-        self._path = []
+        self._path = path.copy()
         pass
+
+    def getRootExpr(self):
+        raise NotImplementedError("getRoot")
 
     def getRootRefKind(self):
         return self._kind
-
-    def addIdxRef(self, idx : int):
-        self._path.append(TypeExprFieldRefElem(ctxt_api.TypeExprFieldRefElemKind.IdxOffset, idx))
-
-    def addActiveScopeRef(self, off : int):
-        self._path.append(TypeExprFieldRefElem(ctxt_api.TypeExprFieldRefElemKind.ActiveScope, off))
-
-    def addRootRef(self):
-        self._path.append(TypeExprFieldRefElem(ctxt_api.TypeExprFieldRefElemKind.Root, -1))
-
-    def addRef(self, ref : 'TypeExprFieldRefElem'):
-        raise NotImplementedError("addRef")
-
-    def at(self, idx : int) -> 'TypeExprFieldRefElem':
-        raise NotImplementedError("at")
     
+    def getRootRefOffset(self):
+        return self._offset
+
     def addPathElem(self, idx):
         self._path.append(idx)
+
+    def size(self):
+        return len(self._path)
+
+    def at(self, idx : int) -> 'TypeExprFieldRefElem':
+        return self._path[idx]
 
     def getPath(self) -> 'List[TypeExprFieldRefElem]':
         return self._path

@@ -27,6 +27,7 @@ from vsc_dataclasses.impl.pyctxt.type_constraint_block import TypeConstraintBloc
 from vsc_dataclasses.impl.pyctxt.type_constraint_expr import TypeConstraintExpr
 from vsc_dataclasses.impl.pyctxt.type_expr_bin import TypeExprBin
 from vsc_dataclasses.impl.pyctxt.type_expr_field_ref import TypeExprFieldRef
+from vsc_dataclasses.impl.pyctxt.type_field import TypeField
 from vsc_dataclasses.impl.pyctxt.type_field_phy import TypeFieldPhy
 from ..context import BinOp
 from ..pyctxt.data_type_struct import DataTypeStruct
@@ -38,16 +39,23 @@ class CollectStructDeps(VisitorBase):
         self._dep_m = {}
         self._entries = []
         self._entry_m = {}
-        self._active_type_id = []
+        self._scope_s = []
         pass
 
     def collect(self, t : DataTypeStruct):
+        self._init()
+        t.accept(self)
+        return self._sort_deps()
+    
+    def _init(self):
         self._dep_m = {}
         self._entries = []
         self._entry_m = {}
-        self._active_type_id = []
-        t.accept(self)
+        self._scope_s = []
+        self._in_field_s = []
 
+    def _sort_deps(self):
+        print("dep_m: %s" % str(self._dep_m))
         result = list(toposort.toposort(self._dep_m))
 
         ret = []
@@ -56,7 +64,27 @@ class CollectStructDeps(VisitorBase):
                 ret.append(self._entries[ei])
         return ret
 
+
     def visitDataTypeStruct(self, i: DataTypeStruct):
+        is_new = False
+        if self.in_field():
+            is_new = self.addRef(i)
+        else:
+            is_new = self.addType(i)
+
+        self.push_scope(i)
+        for f in i.getFields():
+            f.accept(self)
+
+        self.pop_scope()
+
+    def visitTypeField(self, i: TypeField):
+        print("visitTypeField %s" % i.name())
+        self.push_in_field(True)
+        i.getDataType().accept(self)
+        self.pop_in_field()
+
+    def addType(self, i):
         is_new = True if i.name() not in self._entry_m.keys() else False
         if is_new:
             i_id = len(self._entries)
@@ -65,18 +93,41 @@ class CollectStructDeps(VisitorBase):
             self._entries.append(i)
         else:
             i_id = self._entry_m[i.name()]
+        return is_new
+    
+    def addRef(self, i):
+        is_new = False
+        print("addRef: %s (from %s)" % (
+            i.name(),
+            self._scope_s[-1].name()))
+        if i.name() not in self._entry_m.keys():
+            is_new = self.addType(i)
+
+        dep_id = self._entry_m[self._scope_s[-1].name()]
+        i_id = self._entry_m[i.name()]
+        print("    dep_id=%d i_id=%d" % (dep_id, i_id))
+        if i_id not in self._dep_m[dep_id]:
+            self._dep_m[dep_id].append(i_id)
+        return is_new
+
+    def push_scope(self, s):
+        print("push_scope: %s" % s.name())
+        self._scope_s.append(s)
+
+    def scope(self):
+        return self._scope_s[-1] if len(self._scope_s) > 0 else None
+    
+    def pop_scope(self):
+        print("pop_scope: %s" % self._scope_s[-1].name())
+        self._scope_s.pop()
+
+    def push_in_field(self, i):
+        self._in_field_s.append(i)
+    
+    def in_field(self):
+        return len(self._in_field_s) and self._in_field_s[-1]
+    
+    def pop_in_field(self):
+        self._in_field_s.pop()
 
 
-        if len(self._active_type_id) > 0:
-            # We're being referenced, so our containing type
-            # has a dependency on this type
-            dep_id = self._entry_m[self._active_type_id[-1]]
-            if i_id not in self._dep_m[dep_id]:
-                self._dep_m[dep_id].append(i_id)
-
-        if is_new:
-            self._active_type_id.append(i.name())
-            try:
-                super().visitDataTypeStruct(i)
-            finally:
-                self._active_type_id.pop()

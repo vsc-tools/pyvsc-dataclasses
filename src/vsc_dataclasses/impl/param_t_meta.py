@@ -1,7 +1,7 @@
 #****************************************************************************
-#* type_expr_bin.py
+#* param_t_meta.py
 #*
-#* Copyright 2022 Matthew Ballance and Contributors
+#* Copyright 2023 Matthew Ballance and Contributors
 #*
 #* Licensed under the Apache License, Version 2.0 (the "License"); you may 
 #* not use this file except in compliance with the License.  
@@ -19,25 +19,19 @@
 #*     Author: 
 #*
 #****************************************************************************
+from .param_t import ParamT
 
-import vsc_dataclasses.impl.context as ctxt_api
+class ParamTMeta(type):
 
-class TypeExprBin(ctxt_api.TypeExprBin):
+    def __init__(self, name, bases, dct):
+        self.type_m = {}
 
-    def __init__(self, lhs, op, rhs):
-        self._lhs = lhs
-        self._op = op
-        self._rhs = rhs
-
-    def lhs(self):
-        return self._lhs
-    
-    def op(self):
-        return self._op
-
-    def rhs(self):
-        return self._rhs
-
-    def accept(self, v):
-        v.visitTypeExprBin(self)
+    def __getitem__(self, item):
+        if item in self.type_m.keys():
+            return self.type_m[item]
+        else:
+            t = type('param_t[%s' % str(item), (ParamT,), {})
+            t.T = item
+            self.type_m[item] = t
+            return t
 

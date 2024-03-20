@@ -116,6 +116,11 @@ class Ctor():
         else:
             return self._expr_s.pop()
         
+    def pop_exprs(self):
+        ret = self._expr_s.copy()
+        self._expr_s.clear()
+        return ret
+        
     def expr(self):
         if len(self._expr_s) > 0:
             return self._expr_s[-1]

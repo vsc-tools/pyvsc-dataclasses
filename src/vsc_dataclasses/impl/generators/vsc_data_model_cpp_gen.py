@@ -42,6 +42,7 @@ class VscDataModelCppGen(VisitorBase):
         self._type_s = []
         self._constraint_scope_s = []
         self._ctxt = "ctxt"
+        # When >0, we're referencing the type not defining it
         self._emit_type_mode = 0
         self._comma = []
 
@@ -49,7 +50,10 @@ class VscDataModelCppGen(VisitorBase):
         self._out = io.StringIO()
         cls_l = CollectStructDeps(None).collect(cls)
 
+        print("cls: %s" % cls.name())
+
         for i,cls_t in enumerate(cls_l):
+            print("    Dep: %s" % cls_t.name())
 #            self._field_ctor.clear()
 
             if i > 0:
@@ -140,13 +144,17 @@ class VscDataModelCppGen(VisitorBase):
         self.println(")%s" % self.comma())
 
     def visitTypeExprFieldRef(self, i: TypeExprFieldRef):
-        if i.getRootRefKind() == TypeExprFieldRefKind.TopDownScope:
-            ref_base = "vsc::dm::ITypeExprFieldRef::RootRefKind::TopDownScope"
-        else:
-            ref_base = "vsc::dm::ITypeExprFieldRef::RootRefKind::BottomUpScope"
-
         ref_list_s = list(map(lambda i: str(i), i.getPath()))
-        self.println("%s->mkTypeExprFieldRef(%s, -1, {%s})%s" % (
+        if i.getRootRefKind() == TypeExprFieldRefKind.TopDownScope:
+            ref_base = "%s->mkTypeExprRefTopDown()" % self._ctxt
+        else:
+            ref_base = "%s->mkTypeExprRefBottomUp(%d, %d)" % (
+                self._ctxt,
+                i.getRootRefOffset(),
+                ref_list_s[0])
+            ref_list_s = ref_list_s[1:]
+
+        self.println("%s->mkTypeExprRefPath(%s, true, {%s})%s" % (
             self._ctxt,
             ref_base,
             ",".join(ref_list_s),
@@ -232,15 +240,31 @@ class VscDataModelCppGen(VisitorBase):
     def inc_indent(self):
         self._ind += "    "
 
+    def ind(self):
+        return self._ind
+
     def dec_indent(self):
         if len(self._ind) > 4:
             self._ind = self._ind[:-4]
         else:
             self._ind = ""
 
+    def push_comma(self, c=True):
+        self._comma.append(c)
+
     def comma(self):
         return "," if len(self._comma) > 0 and self._comma[-1] else ""
+    
+    def pop_comma(self):
+        self._comma.pop()
 
     def leaf_name(self, name):
         elems = name.split('.')
         return elems[-1]
+    
+    def localname(self, name):
+        lidx = name.find("<locals>.")
+        if lidx != -1:
+            return name[lidx+9:]
+        else:
+            return name

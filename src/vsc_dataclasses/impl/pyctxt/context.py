@@ -48,14 +48,20 @@ class Context(impl.Context):
             return False
         return True
 
-    def findDataTypeInt(self, is_signed : bool, width : int) -> DataTypeInt:
+    def findDataTypeInt(self, is_signed : bool, width : int, create : bool=True) -> DataTypeInt:
         ret = None
         if is_signed:
             if width in self._dt_sint_m.keys():
                 ret = self._dt_sint_m[width]
+            elif create:
+                ret = self.mkDataTypeInt(is_signed, width)
+                self._dt_sint_m[width] = ret
         else:
             if width in self._dt_uint_m.keys():
                 ret = self._dt_uint_m[width]
+            elif create:
+                ret = self.mkDataTypeInt(is_signed, width)
+                self._dt_uint_m[width] = ret
         return ret
 
     def mkDataTypeInt(self, is_signed : bool, width : int) -> DataTypeInt:
@@ -161,8 +167,8 @@ class Context(impl.Context):
     def mkTypeExprBin(self, lhs : 'TypeExpr', op : BinOp, rhs : 'TypeExpr') -> 'TypeExprBin':
         return TypeExprBin(lhs, op, rhs)
 
-    def mkTypeExprFieldRef(self, kind, offset) -> 'TypeExprFieldRef':
-        return TypeExprFieldRef(kind, offset)
+    def mkTypeExprFieldRef(self, kind, offset, path) -> 'TypeExprFieldRef':
+        return TypeExprFieldRef(kind, offset, path)
 
     def mkTypeExprVal(self, val) -> 'TypeExprVal':
         return TypeExprVal(val)

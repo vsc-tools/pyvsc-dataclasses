@@ -43,6 +43,7 @@ class Expr(object):
                 Ctor.inst().ctxt().mkValRefInt(rhs, True, 64))
             return Expr(ev)
         else:
+            rhs._to_expr()
             raise Exception("toExpr failed: rhs=%s" % str(rhs))
 
     def _bin_expr(self, op, rhs):

@@ -20,6 +20,7 @@
 import typeworks
 from typeworks.impl.typeinfo import TypeInfo
 from .typeinfo_scalar import TypeInfoScalar
+from .type_utils import TypeUtils
 from .constraint_decorator_impl import ConstraintDecoratorImpl
 
 from .scalar_t import ScalarT
@@ -76,7 +77,7 @@ class RandClassDecoratorImpl(typeworks.ClsDecoratorBase):
         for b in T.__bases__:
             info = typeworks.TypeInfo.get(b, False)
             if info is not None:
-                b_randclass_info = TypeInfoRandClass.get(info, False)
+                b_randclass_info = TypeInfoRandClass.get(info)
                 if b_randclass_info is not None:
                     self.__collectConstraints(b_randclass_info, b)        
                 
@@ -87,14 +88,19 @@ class RandClassDecoratorImpl(typeworks.ClsDecoratorBase):
         randclass_ti = TypeInfoRandClass.get(self.get_typeinfo())
             
         self.logger.debug("type(value)=%s" % str(type(value)))
+        is_rand = False
+        if issubclass(value, RandT):
+            self.logger.debug("isrand")
+            value = value.T
+            is_rand = True
 
-        is_rand, libobj, ti = self._get_type(value)
+        ti = TypeUtils().val2TypeInfo(value)
 
         attr = TypeFieldAttr.NoAttr
 
         if has_init:
             self.logger.debug("Field: %s init=%s" % (key, str(init)))
-            iv = ctor.ctxt().mkValRefInt(init, t.S, t.W)
+            iv = ti.init2Val(init)
         else:
             iv = None
                    
@@ -103,7 +109,7 @@ class RandClassDecoratorImpl(typeworks.ClsDecoratorBase):
 
         field_type_obj = ctor.ctxt().mkTypeFieldPhy(
             key,
-            libobj,
+            ti._lib_typeobj,
             False,
             attr,
             iv) # TODO: initial value

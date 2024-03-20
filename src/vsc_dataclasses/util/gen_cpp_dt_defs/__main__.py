@@ -68,10 +68,14 @@ def main():
     for fn in fragment_m.keys():
         Ctor.init(Context())
 
-        print("Content:\n%s\n" % fragment_m[fn].content)
-
-        exec_globals = globals().copy()
-        exec(fragment_m[fn].content, exec_globals)
+        try:
+            exec_globals = globals().copy()
+            exec(
+                fragment_m[fn].content,
+                exec_globals)
+        except Exception as e:
+            print("Error while processing %s" % fn)
+            raise e
 
         header_path = os.path.join(args.outdir, "%s.h" % fn)
         root_t = Ctor.inst().ctxt().findDataTypeStruct(fragment_m[fn].root_types[0])
