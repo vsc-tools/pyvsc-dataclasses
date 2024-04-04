@@ -39,6 +39,9 @@ class Ctor():
         self._type_ps = "."
     
     def ctxt(self):
+        if self._ctxt is None:
+            from .pyctxt.context import Context
+            self._ctxt = Context()
         return self._ctxt
 
     def setTypePS(self, ps):
